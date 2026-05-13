@@ -5,7 +5,6 @@ import { authApi } from './api';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import StudentLayout from './pages/student/StudentLayout';
-import TeacherLayout from './pages/teacher/TeacherLayout';
 import CuratorLayout from './pages/curator/CuratorLayout';
 
 export default function App() {
@@ -31,7 +30,6 @@ export default function App() {
           element={
             !token ? <Navigate to="/login" /> :
             user?.role === 'STUDENT' ? <StudentLayout /> :
-            user?.role === 'TEACHER' ? <TeacherLayout /> :
             <CuratorLayout />
           }
         />

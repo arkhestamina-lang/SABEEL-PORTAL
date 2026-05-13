@@ -4,7 +4,6 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { authRouter } from './routes/auth';
 import { studentRouter } from './routes/student';
-import { teacherRouter } from './routes/teacher';
 import { curatorRouter } from './routes/curator';
 import { photosRouter } from './routes/photos';
 import { starostaRouter } from './routes/starosta';
@@ -21,7 +20,6 @@ app.use('/uploads', express.static(path.join(__dirname, '../../uploads')));
 
 app.use('/api/auth', authRouter);
 app.use('/api/student', studentRouter);
-app.use('/api/teacher', teacherRouter);
 app.use('/api/curator', curatorRouter);
 app.use('/api', photosRouter);
 app.use('/api/starosta', starostaRouter);
