@@ -3,70 +3,119 @@ import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
-function daysAgo(n: number, hour = 10, minute = 0) {
-  const d = new Date();
-  d.setDate(d.getDate() - n);
-  d.setHours(hour, minute, 0, 0);
-  return d;
-}
+const GROUPS = [
+  { name: 'Братья 1 курс', course: 1 },
+  { name: 'Сёстры 1 курс',  course: 1 },
+  { name: 'Братья 2 курс', course: 2 },
+  { name: 'Сёстры 2 курс',  course: 2 },
+  { name: 'Братья 3 курс', course: 3 },
+  { name: 'Сёстры 3 курс',  course: 3 },
+  { name: 'Братья 4 курс', course: 4 },
+  { name: 'Сёстры 4 курс',  course: 4 },
+];
 
-function daysFromNow(n: number, hour = 10, minute = 0) {
-  const d = new Date();
-  d.setDate(d.getDate() + n);
-  d.setHours(hour, minute, 0, 0);
-  return d;
-}
+const BROTHERS: [string, string][] = [
+  ['Ахмад',    'Алиев'],
+  ['Юсуф',     'Каримов'],
+  ['Умар',     'Хасанов'],
+  ['Ибрахим',  'Садыков'],
+  ['Мухаммад', 'Рахимов'],
+  ['Халид',    'Джабраилов'],
+  ['Абдулла',  'Магомедов'],
+  ['Исмаил',   'Бакиров'],
+];
+
+const SISTERS: [string, string][] = [
+  ['Марьям',   'Алиева'],
+  ['Зайнаб',   'Каримова'],
+  ['Фатима',   'Хасанова'],
+  ['Асма',     'Садыкова'],
+  ['Айша',     'Рахимова'],
+  ['Хадиджа',  'Джабраилова'],
+  ['Сафия',    'Магомедова'],
+  ['Рукайя',   'Бакирова'],
+];
 
 async function main() {
-  // Группа
-  let group = await prisma.group.findFirst({ where: { name: 'Группа 1-А' } });
-  if (!group) group = await prisma.group.create({ data: { name: 'Группа 1-А', course: 2 } });
+  const passwordHash = await bcrypt.hash('student123', 10);
+  const curatorHash  = await bcrypt.hash('curator123', 10);
 
   // Куратор
-  const curatorHash = await bcrypt.hash('curator123', 10);
   await prisma.user.upsert({
     where: { email: 'curator@sabil.com' },
     update: {},
     create: { firstName: 'Айша', lastName: 'Муминова', email: 'curator@sabil.com', passwordHash: curatorHash, role: 'CURATOR' },
   });
 
-  // Студент
-  const studentHash = await bcrypt.hash('student123', 10);
+  // Тестовый студент (уже существующий)
+  let existingGroup = await prisma.group.findFirst({ where: { name: 'Группа 1-А' } });
+  if (!existingGroup) existingGroup = await prisma.group.findFirst({ where: { course: 2 } });
+
   await prisma.user.upsert({
     where: { email: 'student@sabil.com' },
     update: {},
-    create: { firstName: 'Марьям', lastName: 'Алиева', email: 'student@sabil.com', passwordHash: studentHash, role: 'STUDENT', course: 2, groupId: group.id },
+    create: {
+      firstName: 'Марьям', lastName: 'Алиева', email: 'student@sabil.com',
+      passwordHash, role: 'STUDENT', course: 2,
+      groupId: existingGroup?.id,
+    },
   });
 
-  // Уроки — прошедшие и будущие
-  const lessonsData = [
-    { subject: 'Грамматика', datetime: daysAgo(14, 10) },
-    { subject: 'Чтение', datetime: daysAgo(14, 12) },
-    { subject: 'Грамматика', datetime: daysAgo(10, 10) },
-    { subject: 'Аудирование', datetime: daysAgo(10, 14) },
-    { subject: 'Грамматика', datetime: daysAgo(7, 10) },
-    { subject: 'Чтение', datetime: daysAgo(7, 12) },
-    { subject: 'Аудирование', datetime: daysAgo(3, 14) },
-    { subject: 'Грамматика', datetime: daysAgo(1, 10) },
-    { subject: 'Чтение', datetime: daysFromNow(2, 12) },
-    { subject: 'Грамматика', datetime: daysFromNow(4, 10) },
-    { subject: 'Аудирование', datetime: daysFromNow(7, 14) },
-    { subject: 'Чтение', datetime: daysFromNow(9, 12) },
-    { subject: 'Грамматика', datetime: daysFromNow(11, 10) },
-    { subject: 'Аудирование', datetime: daysFromNow(14, 14) },
-  ];
+  // Создаём 8 новых групп и студентов
+  for (let i = 0; i < GROUPS.length; i++) {
+    const gData = GROUPS[i];
+    const isBrothers = gData.name.startsWith('Братья');
+    const pairIndex = Math.floor(i / 2); // 0,0,1,1,2,2,3,3
 
-  for (const l of lessonsData) {
-    const existing = await prisma.lesson.findFirst({ where: { groupId: group.id, subject: l.subject, datetime: l.datetime } });
-    if (!existing) {
-      await prisma.lesson.create({ data: { ...l, groupId: group.id } });
+    let group = await prisma.group.findFirst({ where: { name: gData.name } });
+    if (!group) {
+      group = await prisma.group.create({ data: { name: gData.name, course: gData.course } });
+    }
+
+    const names = isBrothers ? BROTHERS : SISTERS;
+    // Два студента на группу (pairIndex * 2 и pairIndex * 2 + 1)
+    const idx1 = pairIndex * 2;
+    const idx2 = pairIndex * 2 + 1;
+
+    for (const idx of [idx1, idx2]) {
+      const [firstName, lastName] = names[idx];
+      const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@sabil.com`;
+      await prisma.user.upsert({
+        where: { email },
+        update: {},
+        create: { firstName, lastName, email, passwordHash, role: 'STUDENT', course: gData.course, groupId: group.id },
+      });
     }
   }
 
-  console.log('Seed готов:');
+  // Уроки для существующего студента (seed уже был)
+  const seedGroup = await prisma.group.findFirst({ where: { OR: [{ name: 'Группа 1-А' }, { name: 'Сёстры 2 курс' }] } });
+  if (seedGroup) {
+    const now = new Date();
+    const lessons = [
+      { subject: 'Грамматика', days: -14, hour: 10 },
+      { subject: 'Чтение',     days: -10, hour: 12 },
+      { subject: 'Грамматика', days: -7,  hour: 10 },
+      { subject: 'Аудирование',days: -3,  hour: 14 },
+      { subject: 'Грамматика', days: -1,  hour: 10 },
+      { subject: 'Чтение',     days:  2,  hour: 12 },
+      { subject: 'Грамматика', days:  4,  hour: 10 },
+    ];
+    for (const l of lessons) {
+      const dt = new Date(now);
+      dt.setDate(dt.getDate() + l.days);
+      dt.setHours(l.hour, 0, 0, 0);
+      const exists = await prisma.lesson.findFirst({ where: { groupId: seedGroup.id, subject: l.subject, datetime: dt } });
+      if (!exists) await prisma.lesson.create({ data: { subject: l.subject, datetime: dt, groupId: seedGroup.id } });
+    }
+  }
+
+  const totalGroups  = await prisma.group.count();
+  const totalStudents = await prisma.user.count({ where: { role: 'STUDENT' } });
+  console.log(`✓ Seed завершён: ${totalGroups} групп, ${totalStudents} студентов`);
   console.log('  curator@sabil.com / curator123');
   console.log('  student@sabil.com / student123');
-  console.log(`  Создано уроков для группы "${group.name}"`);
+  console.log('  student123 — пароль для всех тестовых студентов');
 }
 
 main().finally(() => prisma.$disconnect());

@@ -5,7 +5,9 @@ import { format, startOfWeek, addDays } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { Flame, BookOpen, Headphones } from 'lucide-react';
 
-const QURAN_NORM: Record<number, number> = { 1: 0, 2: 1, 3: 2, 4: 3 };
+const QURAN_NORM:     Record<number, number> = { 1: 0,  2: 1,  3: 2,  4: 3  };
+const READING_NORM:   Record<number, number> = { 1: 1,  2: 2,  3: 3,  4: 4  }; // стр/день
+const LISTENING_NORM: Record<number, number> = { 1: 10, 2: 15, 3: 20, 4: 30 }; // мин/день
 const QUOTES = [
   { text: 'Кто пришёл на собрание знания без пера и бумаги — подобен тому, кто пришёл на мельницу без зерна.', source: 'Имам аш-Шафии' },
   { text: 'Знание — не обилие того, что ты выучил. Истинное знание — это богобоязненность.', source: 'Абдуллах ибн Масуд' },
@@ -30,7 +32,9 @@ export default function DashboardPage() {
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 0 });
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
   const quote = QUOTES[new Date().getDay() % QUOTES.length];
-  const norm = QURAN_NORM[user?.course ?? 1];
+  const norm          = QURAN_NORM[user?.course ?? 1];
+  const readingNorm   = READING_NORM[user?.course ?? 1];
+  const listeningNorm = LISTENING_NORM[user?.course ?? 1];
   const quranPages = data?.quranEntry?.pagesCompleted ?? 0;
 
   useEffect(() => { studentApi.dashboard().then(setData); }, []);
@@ -149,7 +153,34 @@ export default function DashboardPage() {
 
       {/* Привычки */}
       <div className="bg-card rounded-2xl p-4 shadow-card fade-up">
-        <p className="font-body text-[11px] uppercase tracking-widest text-muted mb-4">Привычки недели</p>
+        {/* Заголовок с прогрессом */}
+        <div className="flex items-start justify-between mb-4">
+          <p className="font-body text-[11px] uppercase tracking-widest text-muted">Привычки недели</p>
+          <div className="text-right">
+            {(() => {
+              const readingDone  = weekDays.filter(d => data.habits?.find((h: any) => h.date.slice(0,10) === format(d,'yyyy-MM-dd'))?.reading).length;
+              const listenDone   = weekDays.filter(d => data.habits?.find((h: any) => h.date.slice(0,10) === format(d,'yyyy-MM-dd'))?.listening).length;
+              const readingTotal = readingNorm * readingDone;
+              const listenTotal  = listeningNorm * listenDone;
+              const readingGoal  = readingNorm * 7;
+              const listenGoal   = listeningNorm * 7;
+              return (
+                <>
+                  <p className="font-body text-[10px] text-muted">
+                    <BookOpen size={9} className="inline mr-0.5" />
+                    {readingTotal}/{readingGoal} стр.
+                  </p>
+                  <p className="font-body text-[10px] text-muted">
+                    <Headphones size={9} className="inline mr-0.5" />
+                    {listenTotal}/{listenGoal} мин.
+                  </p>
+                </>
+              );
+            })()}
+          </div>
+        </div>
+
+        {/* Сетка дней */}
         <div className="flex justify-between gap-1">
           {weekDays.map((day) => {
             const key = format(day, 'yyyy-MM-dd');
@@ -164,16 +195,14 @@ export default function DashboardPage() {
                 <button
                   disabled={isFuture}
                   onClick={() => !isFuture && saveHabit(key, 'reading', !entry?.reading)}
-                  title="Чтение"
-                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${entry?.reading ? 'bg-primary text-white' : 'bg-bg text-muted'} disabled:opacity-30`}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90 ${entry?.reading ? 'bg-primary text-white' : 'bg-bg text-muted'} disabled:opacity-30`}
                 >
                   <BookOpen size={13} />
                 </button>
                 <button
                   disabled={isFuture}
                   onClick={() => !isFuture && saveHabit(key, 'listening', !entry?.listening)}
-                  title="Аудирование"
-                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${entry?.listening ? 'bg-primary text-white' : 'bg-bg text-muted'} disabled:opacity-30`}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90 ${entry?.listening ? 'bg-primary text-white' : 'bg-bg text-muted'} disabled:opacity-30`}
                 >
                   <Headphones size={13} />
                 </button>
@@ -181,9 +210,15 @@ export default function DashboardPage() {
             );
           })}
         </div>
-        <div className="flex gap-4 mt-3 justify-center">
-          <span className="flex items-center gap-1 font-body text-[10px] text-muted"><BookOpen size={11} /> Чтение</span>
-          <span className="flex items-center gap-1 font-body text-[10px] text-muted"><Headphones size={11} /> Аудирование</span>
+
+        {/* Норма */}
+        <div className="mt-3 pt-3 border-t border-border flex justify-between">
+          <span className="flex items-center gap-1 font-body text-[10px] text-muted">
+            <BookOpen size={10} /> Чтение · {readingNorm} стр/день
+          </span>
+          <span className="flex items-center gap-1 font-body text-[10px] text-muted">
+            <Headphones size={10} /> Аудирование · {listeningNorm} мин/день
+          </span>
         </div>
       </div>
 
