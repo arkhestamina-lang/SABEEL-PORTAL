@@ -204,10 +204,10 @@ curatorRouter.post('/semesters', async (req: AuthRequest, res: Response) => {
 // Добавить шаблон урока в семестр
 curatorRouter.post('/semesters/:id/templates', async (req: AuthRequest, res: Response) => {
   const semesterId = parseInt(req.params.id);
-  const { dayOfWeek, timeHour, timeMinute, subject, teacherId } = req.body;
+  const { dayOfWeek, timeHour, timeMinute, subject, teacherId, meetingUrl } = req.body;
 
   const template = await prisma.scheduleTemplate.create({
-    data: { semesterId, dayOfWeek, timeHour, timeMinute, subject, teacherId },
+    data: { semesterId, dayOfWeek, timeHour, timeMinute, subject, teacherId, meetingUrl: meetingUrl || null },
   });
   res.status(201).json(template);
 });
@@ -244,7 +244,7 @@ curatorRouter.post('/semesters/:id/generate', async (req: AuthRequest, res: Resp
   // Удаляем ранее сгенерированные уроки для этого семестра (не extra и не отменённые вручную)
   await prisma.lesson.deleteMany({ where: { templateId: { in: semester.templates.map((t) => t.id) } } });
 
-  const lessons: { templateId: number; teacherId: number | null; subject: string; datetime: Date; groupId: number }[] = [];
+  const lessons: { templateId: number; teacherId: number | null; subject: string; datetime: Date; groupId: number; meetingUrl: string | null }[] = [];
 
   for (const template of semester.templates) {
     const cursor = new Date(semester.startDate);
@@ -260,6 +260,7 @@ curatorRouter.post('/semesters/:id/generate', async (req: AuthRequest, res: Resp
         subject: template.subject,
         datetime,
         groupId: semester.groupId,
+        meetingUrl: template.meetingUrl ?? null,
       });
       cursor.setDate(cursor.getDate() + 7);
     }
@@ -288,11 +289,11 @@ curatorRouter.patch('/lessons/:id', async (req: AuthRequest, res: Response) => {
 
 // Добавить разовый урок (groupId передаётся в теле)
 curatorRouter.post('/lessons', async (req: AuthRequest, res: Response) => {
-  const { subject, datetime, teacherId, note, groupId } = req.body;
+  const { subject, datetime, teacherId, note, groupId, meetingUrl } = req.body;
   if (!groupId) { res.status(400).json({ error: 'Укажи группу' }); return; }
 
   const lesson = await prisma.lesson.create({
-    data: { subject, datetime: new Date(datetime), groupId, teacherId, note, isExtra: true },
+    data: { subject, datetime: new Date(datetime), groupId, teacherId, note, meetingUrl: meetingUrl || null, isExtra: true },
   });
   res.status(201).json(lesson);
 });
@@ -330,6 +331,7 @@ curatorRouter.get('/schedule/:groupId', async (req: AuthRequest, res: Response) 
     isCancelled: l.isCancelled,
     isExtra: l.isExtra,
     note: l.note,
+    meetingUrl: l.meetingUrl,
   })));
 });
 

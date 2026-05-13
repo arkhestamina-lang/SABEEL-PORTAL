@@ -36,6 +36,17 @@ export interface Lesson {
   canSubmitAbsence?: boolean;
   isPast?: boolean;
   hwSubmitted?: boolean;
+  meetingUrl?: string | null;
+}
+
+export interface ScheduleTemplate {
+  id: number;
+  dayOfWeek: number;
+  timeHour: number;
+  timeMinute: number;
+  subject: string;
+  teacherId?: number;
+  meetingUrl?: string | null;
 }
 
 export interface AbsenceRequest {
@@ -80,11 +91,4 @@ export interface Semester {
   templates: ScheduleTemplate[];
 }
 
-export interface ScheduleTemplate {
-  id: number;
-  dayOfWeek: number;
-  timeHour: number;
-  timeMinute: number;
-  subject: string;
-  teacherId?: number;
-}
+

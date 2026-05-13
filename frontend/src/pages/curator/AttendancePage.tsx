@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import { curatorApi } from '../../api';
 import { format, isPast } from 'date-fns';
 import { ru } from 'date-fns/locale';
+import { useNavigate } from 'react-router-dom';
 import CalendarView from '../../components/common/CalendarView';
 import type { Lesson } from '../../types';
+import { Settings2 } from 'lucide-react';
 
 interface Group { id: number; name: string; course: number }
 interface Student { id: number; firstName: string; lastName: string; present: boolean }
@@ -21,6 +23,7 @@ export default function AttendancePage() {
   const [tab, setTab] = useState<'attendance' | 'homework'>('attendance');
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     curatorApi.groups().then((gs: Group[]) => {
@@ -174,7 +177,16 @@ export default function AttendancePage() {
   // Главный экран — выбор группы + календарь
   return (
     <div className="px-4 pt-8 pb-4 flex flex-col gap-4">
-      <h1 className="font-heading text-2xl uppercase tracking-wide text-dark">Расписание</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="font-heading text-2xl uppercase tracking-wide text-dark">Расписание</h1>
+        <button
+          onClick={() => navigate('/schedule-manager')}
+          className="flex items-center gap-1.5 text-xs font-body text-muted bg-card px-3 py-2 rounded-xl shadow-card hover:shadow-float active:scale-95"
+        >
+          <Settings2 size={14} />
+          Настроить
+        </button>
+      </div>
 
       {/* Выбор группы — показываем всегда */}
       {groups.length > 0 && (

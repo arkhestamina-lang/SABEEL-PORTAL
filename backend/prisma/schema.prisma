@@ -60,6 +60,7 @@ model ScheduleTemplate {
   timeMinute Int
   subject    String
   teacherId  Int?
+  meetingUrl String?
 
   semester Semester @relation(fields: [semesterId], references: [id])
   lessons  Lesson[]
@@ -75,6 +76,7 @@ model Lesson {
   isCancelled Boolean  @default(false)
   isExtra     Boolean  @default(false)
   note        String?
+  meetingUrl  String?
 
   group    Group             @relation(fields: [groupId], references: [id])
   teacher  User?             @relation("TeacherLessons", fields: [teacherId], references: [id])

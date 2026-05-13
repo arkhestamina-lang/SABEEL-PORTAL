@@ -66,6 +66,9 @@ studentRouter.get('/schedule', async (req: AuthRequest, res: Response) => {
     subject: l.subject,
     datetime: l.datetime,
     isExtra: l.isExtra,
+    isCancelled: l.isCancelled,
+    note: l.note,
+    meetingUrl: l.meetingUrl,
     isPast: l.datetime <= now,
     attended: l.attendance[0]?.present ?? null,
     absenceStatus: absenceMap[l.id] ?? null,
@@ -148,16 +151,19 @@ studentRouter.get('/progress', async (req: AuthRequest, res: Response) => {
     calcRating(studentId, year, month),
   ]);
 
-  // Место в группе (анонимно)
+  // Место в группе (анонимно) — исправлено сравнение по ID
   let rank: { position: number; total: number } | null = null;
   if (user?.groupId) {
     const groupStudents = await prisma.user.findMany({
       where: { groupId: user.groupId, role: 'STUDENT' },
       select: { id: true },
     });
-    const ratings = await Promise.all(groupStudents.map((s) => calcRating(s.id, year, month)));
-    const sorted = ratings.sort((a, b) => b.total - a.total);
-    rank = { position: sorted.findIndex((r) => r === rating) + 1, total: groupStudents.length };
+    const ratingsWithIds = await Promise.all(
+      groupStudents.map(async (s) => ({ id: s.id, total: (await calcRating(s.id, year, month)).total }))
+    );
+    const sorted = ratingsWithIds.sort((a, b) => b.total - a.total);
+    const position = sorted.findIndex((r) => r.id === studentId) + 1;
+    rank = { position: position > 0 ? position : groupStudents.length, total: groupStudents.length };
   }
 
   // История по месяцам (последние 6)

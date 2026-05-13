@@ -1,9 +1,10 @@
 import { useEffect, useState, useRef } from 'react';
 import { studentApi } from '../../api';
-import { format, isPast } from 'date-fns';
+import { format, isPast, isWithinInterval, subMinutes, addMinutes } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import type { Lesson } from '../../types';
 import CalendarView from '../../components/common/CalendarView';
+import { Video, Camera, ArrowLeft } from 'lucide-react';
 
 interface HwPhoto { id: number; url: string; createdAt: string }
 
@@ -71,29 +72,42 @@ export default function SchedulePage() {
     setPhotos((ps) => ps.filter((p) => p.id !== id));
   }
 
-  async function toggleHomework(lesson: Lesson) {
-    if (lesson.hwSubmitted) {
-      await studentApi.unsubmitHomework(lesson.id);
-    } else {
-      await studentApi.submitHomework(lesson.id);
-    }
-    const updated = { ...lesson, hwSubmitted: !lesson.hwSubmitted };
-    setLessons((ls) => ls.map((l) => l.id === lesson.id ? updated : l));
-    setSelected(updated);
-  }
-
   // Детальный экран урока
   if (selected) {
-    const past = isPast(new Date(selected.datetime));
+    const lessonDate = new Date(selected.datetime);
+    const past = isPast(lessonDate);
+    const isActive = isWithinInterval(new Date(), {
+      start: subMinutes(lessonDate, 15),
+      end: addMinutes(lessonDate, 90),
+    });
 
     return (
       <div className="px-4 pt-8 pb-4 flex flex-col gap-4">
-        <button onClick={() => setSelected(null)} className="text-primary text-sm font-body">← Расписание</button>
+        <button onClick={() => setSelected(null)} className="flex items-center gap-1.5 text-muted hover:text-dark text-sm font-body">
+          <ArrowLeft size={16} /> Расписание
+        </button>
 
         <div>
           <p className="font-body text-xs text-dark/40">{format(new Date(selected.datetime), 'EEEE, d MMMM · HH:mm', { locale: ru })}</p>
           <h1 className="font-heading text-2xl uppercase tracking-wide text-dark mt-0.5">{selected.subject}</h1>
           {selected.isCancelled && <p className="font-body text-sm text-dark/40 mt-1">Урок отменён {selected.note ? `· ${selected.note}` : ''}</p>}
+
+          {/* Кнопка входа на урок */}
+          {selected.meetingUrl && !selected.isCancelled && (
+            <a
+              href={selected.meetingUrl}
+              target="_blank"
+              rel="noreferrer"
+              className={`mt-3 flex items-center justify-center gap-2 py-3 rounded-2xl font-heading uppercase tracking-wide text-sm transition-all ${
+                isActive
+                  ? 'bg-primary text-white shadow-blue'
+                  : 'bg-primary/10 text-primary'
+              }`}
+            >
+              <Video size={16} />
+              {isActive ? 'Войти на урок' : 'Ссылка на урок'}
+            </a>
+          )}
         </div>
 
         {!selected.isCancelled && (
@@ -134,22 +148,16 @@ export default function SchedulePage() {
             {/* Домашнее задание */}
             {past && (
               <div className="border-t border-black/5 pt-3 flex flex-col gap-3">
-                <p className="font-body text-[10px] text-dark/40 uppercase tracking-wider">Домашнее задание</p>
-
-                {/* Отметка сдачи */}
-                <button
-                  onClick={() => toggleHomework(selected)}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-body transition-colors w-full ${
-                    selected.hwSubmitted ? 'bg-green-100 text-green-700' : 'bg-bg text-dark/60 border border-black/10'
-                  }`}
-                >
-                  <span className="text-base">{selected.hwSubmitted ? '✓' : '○'}</span>
-                  {selected.hwSubmitted ? 'ДЗ отправлено в чат' : 'Отметить что отправил в чат'}
-                </button>
+                <div className="flex items-center justify-between">
+                  <p className="font-body text-[10px] text-dark/40 uppercase tracking-wider">Домашнее задание</p>
+                  {selected.hwSubmitted && (
+                    <span className="font-body text-[10px] text-green-600 bg-green-50 px-2 py-0.5 rounded-lg">Выполнено ✓</span>
+                  )}
+                </div>
 
                 {/* Фото */}
                 <div>
-                  <p className="font-body text-[10px] text-dark/40 uppercase tracking-wider mb-2">Фото работы</p>
+                  <p className="font-body text-[10px] text-dark/40 uppercase tracking-wider mb-2">Прикрепи фото работы</p>
 
                   {photos.length > 0 && (
                     <div className="grid grid-cols-3 gap-2 mb-2">
@@ -177,10 +185,10 @@ export default function SchedulePage() {
                   <button
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploading}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-body bg-bg text-dark/60 border border-black/10 w-full disabled:opacity-60"
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-body bg-bg text-dark/60 border border-border w-full disabled:opacity-60 hover:border-primary hover:text-primary active:scale-[0.98]"
                   >
-                    <span className="text-base">📷</span>
-                    {uploading ? 'Загружаем...' : photos.length > 0 ? 'Добавить ещё фото' : 'Прикрепить фото'}
+                    <Camera size={16} />
+                    {uploading ? 'Загружаем...' : photos.length > 0 ? 'Добавить ещё фото' : 'Прикрепить фото работы'}
                   </button>
                 </div>
               </div>

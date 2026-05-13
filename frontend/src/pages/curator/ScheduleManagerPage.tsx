@@ -21,7 +21,7 @@ export default function ScheduleManagerPage() {
   const [showNewSem, setShowNewSem] = useState(false);
   const [newSem, setNewSem] = useState({ name: '', startDate: '', endDate: '' });
 
-  const [newTpl, setNewTpl] = useState({ dayOfWeek: 1, timeHour: 10, timeMinute: 0, subject: '', teacherId: '' });
+  const [newTpl, setNewTpl] = useState({ dayOfWeek: 1, timeHour: 10, timeMinute: 0, subject: '', teacherId: '', meetingUrl: '' });
   const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
@@ -64,11 +64,12 @@ export default function ScheduleManagerPage() {
     const t = await curatorApi.addTemplate(selectedSem.id, {
       ...newTpl,
       teacherId: newTpl.teacherId ? parseInt(newTpl.teacherId) : undefined,
+      meetingUrl: newTpl.meetingUrl || undefined,
     });
     const updated = { ...selectedSem, templates: [...selectedSem.templates, t] };
     setSelectedSem(updated);
     setSemesters((ss) => ss.map((s) => s.id === selectedSem.id ? updated : s));
-    setNewTpl({ dayOfWeek: 1, timeHour: 10, timeMinute: 0, subject: '', teacherId: '' });
+    setNewTpl({ dayOfWeek: 1, timeHour: 10, timeMinute: 0, subject: '', teacherId: '', meetingUrl: '' });
   }
 
   async function generate() {
@@ -97,11 +98,16 @@ export default function ScheduleManagerPage() {
           <p className="font-heading uppercase tracking-wide text-sm text-dark/60 mb-3">Шаблон расписания</p>
           {selectedSem.templates.length === 0 && <p className="font-body text-xs text-dark/40 mb-2">Добавь уроки ниже</p>}
           {selectedSem.templates.map((t) => (
-            <div key={t.id} className="flex items-center gap-3 py-2 border-b border-black/5 last:border-0">
-              <span className="font-body text-xs text-primary font-medium w-6">{DAYS[t.dayOfWeek]}</span>
-              <span className="font-body text-xs text-dark/50">{String(t.timeHour).padStart(2, '0')}:{String(t.timeMinute).padStart(2, '0')}</span>
-              <span className="font-heading text-sm text-dark flex-1">{t.subject}</span>
-              <button onClick={() => deleteTemplate(t.id)} className="text-dark/25 hover:text-red-400 text-lg leading-none px-1 transition-colors">×</button>
+            <div key={t.id} className="py-2 border-b border-black/5 last:border-0">
+              <div className="flex items-center gap-3">
+                <span className="font-body text-xs text-primary font-medium w-6">{DAYS[t.dayOfWeek]}</span>
+                <span className="font-body text-xs text-dark/50">{String(t.timeHour).padStart(2, '0')}:{String(t.timeMinute).padStart(2, '0')}</span>
+                <span className="font-heading text-sm text-dark flex-1">{t.subject}</span>
+                <button onClick={() => deleteTemplate(t.id)} className="text-dark/25 hover:text-red-400 text-lg leading-none px-1 transition-colors">×</button>
+              </div>
+              {(t as any).meetingUrl && (
+                <p className="font-body text-[10px] text-primary/70 mt-0.5 ml-9 truncate">🔗 {(t as any).meetingUrl}</p>
+              )}
             </div>
           ))}
         </div>
@@ -130,6 +136,9 @@ export default function ScheduleManagerPage() {
             <option value="">Учитель (необязательно)</option>
             {teachers.map((t) => <option key={t.id} value={t.id}>{t.lastName} {t.firstName}</option>)}
           </select>
+          <input type="url" placeholder="Ссылка Zoom / Meet (необязательно)" value={newTpl.meetingUrl}
+            onChange={(e) => setNewTpl((t) => ({ ...t, meetingUrl: e.target.value }))}
+            className="w-full bg-bg border border-black/10 rounded-xl px-3 py-2 font-body text-sm focus:outline-none focus:border-primary" />
           <button onClick={addTemplate} disabled={!newTpl.subject}
             className="w-full bg-primary text-white font-heading uppercase text-xs py-3 rounded-xl disabled:opacity-60">
             Добавить в шаблон
