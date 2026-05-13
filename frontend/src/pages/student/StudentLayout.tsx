@@ -6,10 +6,10 @@ import ProgressPage from './ProgressPage';
 import ProfilePage from './ProfilePage';
 
 const TABS = [
-  { to: '/dashboard', label: 'Главная', icon: '🏠' },
-  { to: '/schedule', label: 'Расписание', icon: '📅' },
-  { to: '/progress', label: 'Прогресс', icon: '📊' },
-  { to: '/profile', label: 'Профиль', icon: '👤' },
+  { to: '/dashboard', label: 'Главная', icon: 'home' },
+  { to: '/schedule', label: 'Расписание', icon: 'calendar' },
+  { to: '/progress', label: 'Прогресс', icon: 'chart' },
+  { to: '/profile', label: 'Профиль', icon: 'user' },
 ];
 
 export default function StudentLayout() {

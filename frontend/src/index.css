@@ -2,14 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
 
 body {
   font-family: 'Montserrat', sans-serif;
   background-color: #EEEBE5;
   color: #1A1A1A;
   min-height: 100dvh;
-  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
@@ -19,3 +25,31 @@ body {
   display: flex;
   flex-direction: column;
 }
+
+/* Smooth transitions globally */
+button, a, input, select, textarea {
+  transition: all 0.18s ease;
+}
+
+/* Focus ring */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #4A89C8;
+  outline-offset: 2px;
+}
+
+/* Hide scrollbar */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Safe bottom padding for iOS */
+.safe-pb { padding-bottom: env(safe-area-inset-bottom, 0px); }
+
+/* Animate fade-in */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp 0.25s ease forwards; }

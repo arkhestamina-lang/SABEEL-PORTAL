@@ -8,11 +8,11 @@ import ExamsPage from './ExamsPage';
 import CuratorProfilePage from './CuratorProfilePage';
 
 const TABS = [
-  { to: '/students', label: 'Студенты', icon: '👥' },
-  { to: '/absences', label: 'Заявки', icon: '📋' },
-  { to: '/attendance', label: 'Расписание', icon: '📅' },
-  { to: '/exams', label: 'Экзамены', icon: '📝' },
-  { to: '/curator-profile', label: 'Профиль', icon: '👤' },
+  { to: '/students', label: 'Студенты', icon: 'users' },
+  { to: '/absences', label: 'Заявки', icon: 'list' },
+  { to: '/attendance', label: 'Расписание', icon: 'calendar' },
+  { to: '/exams', label: 'Экзамены', icon: 'book' },
+  { to: '/curator-profile', label: 'Профиль', icon: 'user' },
 ];
 
 export default function CuratorLayout() {
