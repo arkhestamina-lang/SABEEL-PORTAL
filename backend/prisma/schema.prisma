@@ -1,0 +1,212 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  firstName    String
+  lastName     String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(STUDENT)
+  course       Int?
+  groupId      Int?
+  createdAt    DateTime @default(now())
+
+  group           Group?           @relation("StudentGroup", fields: [groupId], references: [id])
+  absenceRequests     AbsenceRequest[]
+  homeworkMisses      HomeworkMiss[]
+  homeworkSubmissions HomeworkSubmission[]
+  homeworkPhotos      HomeworkPhoto[]
+  quranEntries        QuranEntry[]
+  habitEntries        HabitEntry[]
+  examScores          ExamScore[]
+  attendanceMarks     AttendanceMark[]
+  taughtLessons       Lesson[]             @relation("TeacherLessons")
+}
+
+model Group {
+  id      Int    @id @default(autoincrement())
+  name    String
+  course  Int
+
+  students  User[]     @relation("StudentGroup")
+  lessons   Lesson[]
+  semesters Semester[]
+  exams     Exam[]
+}
+
+model Semester {
+  id        Int      @id @default(autoincrement())
+  groupId   Int
+  name      String
+  startDate DateTime
+  endDate   DateTime
+
+  group     Group              @relation(fields: [groupId], references: [id])
+  templates ScheduleTemplate[]
+}
+
+model ScheduleTemplate {
+  id         Int    @id @default(autoincrement())
+  semesterId Int
+  dayOfWeek  Int
+  timeHour   Int
+  timeMinute Int
+  subject    String
+  teacherId  Int?
+
+  semester Semester @relation(fields: [semesterId], references: [id])
+  lessons  Lesson[]
+}
+
+model Lesson {
+  id          Int      @id @default(autoincrement())
+  templateId  Int?
+  teacherId   Int?
+  subject     String
+  datetime    DateTime
+  groupId     Int
+  isCancelled Boolean  @default(false)
+  isExtra     Boolean  @default(false)
+  note        String?
+
+  group    Group             @relation(fields: [groupId], references: [id])
+  teacher  User?             @relation("TeacherLessons", fields: [teacherId], references: [id])
+  template ScheduleTemplate? @relation(fields: [templateId], references: [id])
+
+  absences            AbsenceRequest[]
+  attendance          AttendanceMark[]
+  homework            HomeworkMiss[]
+  hwSubmissions       HomeworkSubmission[]
+  hwPhotos            HomeworkPhoto[]
+}
+
+model AbsenceRequest {
+  id          Int           @id @default(autoincrement())
+  studentId   Int
+  lessonId    Int
+  reason      String
+  status      AbsenceStatus @default(PENDING)
+  submittedAt DateTime      @default(now())
+  resolvedAt  DateTime?
+
+  student User   @relation(fields: [studentId], references: [id])
+  lesson  Lesson @relation(fields: [lessonId], references: [id])
+
+  @@unique([studentId, lessonId])
+}
+
+model HomeworkMiss {
+  id        Int      @id @default(autoincrement())
+  studentId Int
+  lessonId  Int
+  curatorId Int
+  createdAt DateTime @default(now())
+
+  student User   @relation(fields: [studentId], references: [id])
+  lesson  Lesson @relation(fields: [lessonId], references: [id])
+
+  @@unique([studentId, lessonId])
+}
+
+model QuranEntry {
+  id             Int      @id @default(autoincrement())
+  studentId      Int
+  weekStart      DateTime
+  pagesCompleted Int      @default(0)
+
+  student User @relation(fields: [studentId], references: [id])
+
+  @@unique([studentId, weekStart])
+}
+
+model HabitEntry {
+  id        Int      @id @default(autoincrement())
+  studentId Int
+  date      DateTime @db.Date
+  reading   Boolean  @default(false)
+  listening Boolean  @default(false)
+
+  student User @relation(fields: [studentId], references: [id])
+
+  @@unique([studentId, date])
+}
+
+model Exam {
+  id      Int      @id @default(autoincrement())
+  title   String
+  date    DateTime
+  groupId Int
+  formUrl String?
+
+  group  Group       @relation(fields: [groupId], references: [id])
+  scores ExamScore[]
+}
+
+model ExamScore {
+  id        Int      @id @default(autoincrement())
+  studentId Int
+  examId    Int
+  score     Float
+  maxScore  Float    @default(100)
+  createdAt DateTime @default(now())
+
+  student User @relation(fields: [studentId], references: [id])
+  exam    Exam @relation(fields: [examId], references: [id])
+
+  @@unique([studentId, examId])
+}
+
+model HomeworkPhoto {
+  id        Int      @id @default(autoincrement())
+  studentId Int
+  lessonId  Int
+  fileName  String
+  createdAt DateTime @default(now())
+
+  student User   @relation(fields: [studentId], references: [id])
+  lesson  Lesson @relation(fields: [lessonId], references: [id])
+}
+
+model HomeworkSubmission {
+  id          Int      @id @default(autoincrement())
+  studentId   Int
+  lessonId    Int
+  submittedAt DateTime @default(now())
+
+  student User   @relation(fields: [studentId], references: [id])
+  lesson  Lesson @relation(fields: [lessonId], references: [id])
+
+  @@unique([studentId, lessonId])
+}
+
+model AttendanceMark {
+  id        Int      @id @default(autoincrement())
+  lessonId  Int
+  studentId Int
+  present   Boolean
+  markedAt  DateTime @default(now())
+
+  lesson  Lesson @relation(fields: [lessonId], references: [id])
+  student User   @relation(fields: [studentId], references: [id])
+
+  @@unique([lessonId, studentId])
+}
+
+enum Role {
+  STUDENT
+  TEACHER
+  CURATOR
+}
+
+enum AbsenceStatus {
+  PENDING
+  EXCUSED
+  COUNTED
+}
