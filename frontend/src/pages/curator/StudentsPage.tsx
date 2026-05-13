@@ -2,11 +2,12 @@ import { useEffect, useState } from 'react';
 import { curatorApi } from '../../api';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
+import { Star } from 'lucide-react';
 
 type Filter = 'all' | 'risk' | 'close' | 'best';
 
 interface StudentRow {
-  id: number; firstName: string; lastName: string; course: number;
+  id: number; firstName: string; lastName: string; course: number; groupId?: number;
   rating: { total: number; countedAbsences: number; hwMisses: number };
 }
 
@@ -91,11 +92,11 @@ export default function StudentsPage() {
         </div>
 
         {/* Действия */}
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <button
             onClick={() => setHwModal({ studentId: student.id, studentName: `${student.firstName} ${student.lastName}` })}
             className="flex-1 bg-primary text-white font-heading uppercase text-xs py-3 rounded-xl"
-          >Внести несдачу ДЗ</button>
+          >Несдача ДЗ</button>
           {exams.length > 0 && (
             <button
               onClick={() => setExamModal({ studentId: student.id, exams })}
@@ -103,6 +104,30 @@ export default function StudentsPage() {
             >Балл за экзамен</button>
           )}
         </div>
+
+        {/* Назначить / снять старосту */}
+        {student.groupId && (() => {
+          const isStarosta = student.group?.starostaId === student.id;
+          return (
+            <button
+              onClick={async () => {
+                await curatorApi.setStarosta(student.groupId!, isStarosta ? null : student.id);
+                setDetail((d: any) => d ? {
+                  ...d,
+                  student: { ...d.student, group: { ...d.student.group, starostaId: isStarosta ? null : student.id } }
+                } : d);
+              }}
+              className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl font-heading uppercase text-xs transition-all ${
+                isStarosta
+                  ? 'bg-yellow-50 border border-yellow-200 text-yellow-600'
+                  : 'bg-card border border-black/10 text-muted'
+              }`}
+            >
+              <Star size={14} className={isStarosta ? 'fill-yellow-400 text-yellow-400' : ''} />
+              {isStarosta ? 'Снять с должности старосты' : 'Назначить старостой'}
+            </button>
+          );
+        })()}
 
         {/* Пропуски */}
         {absences.length > 0 && (

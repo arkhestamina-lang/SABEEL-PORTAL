@@ -43,7 +43,7 @@ curatorRouter.get('/students/:id', async (req: AuthRequest, res: Response) => {
 
   const student = await prisma.user.findUnique({
     where: { id: studentId },
-    select: { id: true, firstName: true, lastName: true, course: true, groupId: true, group: { select: { name: true } } },
+    select: { id: true, firstName: true, lastName: true, course: true, groupId: true, group: { select: { id: true, name: true, starostaId: true } } },
   });
   if (!student) {
     res.status(404).json({ error: 'Студент не найден' }); return;
@@ -296,6 +296,17 @@ curatorRouter.post('/lessons', async (req: AuthRequest, res: Response) => {
     data: { subject, datetime: new Date(datetime), groupId, teacherId, note, meetingUrl: meetingUrl || null, isExtra: true },
   });
   res.status(201).json(lesson);
+});
+
+// Назначить или снять старосту группы
+curatorRouter.patch('/groups/:id/starosta', async (req: AuthRequest, res: Response) => {
+  const groupId = parseInt(req.params.id);
+  const { studentId } = req.body; // null = снять старосту
+
+  // Снимаем предыдущего старосту этой группы
+  await prisma.group.update({ where: { id: groupId }, data: { starostaId: studentId ?? null } });
+
+  res.json({ ok: true, starostaId: studentId ?? null });
 });
 
 // Список учителей (для выбора при создании шаблона)

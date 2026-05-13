@@ -7,6 +7,7 @@ import { studentRouter } from './routes/student';
 import { teacherRouter } from './routes/teacher';
 import { curatorRouter } from './routes/curator';
 import { photosRouter } from './routes/photos';
+import { starostaRouter } from './routes/starosta';
 import { startCronJobs } from './services/cronService';
 
 dotenv.config();
@@ -23,6 +24,7 @@ app.use('/api/student', studentRouter);
 app.use('/api/teacher', teacherRouter);
 app.use('/api/curator', curatorRouter);
 app.use('/api', photosRouter);
+app.use('/api/starosta', starostaRouter);
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 

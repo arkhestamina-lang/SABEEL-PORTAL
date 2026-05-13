@@ -40,6 +40,15 @@ export const teacherApi = {
     api.post('/teacher/attendance', { lessonId, marks }).then((r) => r.data),
 };
 
+// Starosta
+export const starostaApi = {
+  me: () => api.get('/starosta/me').then((r) => r.data),
+  lessons: () => api.get('/starosta/lessons').then((r) => r.data),
+  lessonStudents: (id: number) => api.get(`/starosta/lessons/${id}/students`).then((r) => r.data),
+  saveAttendance: (lessonId: number, marks: { studentId: number; present: boolean }[]) =>
+    api.post(`/starosta/lessons/${lessonId}/attendance`, { marks }).then((r) => r.data),
+};
+
 // Curator
 export const curatorApi = {
   groups: () => api.get('/curator/groups').then((r) => r.data),
@@ -67,6 +76,8 @@ export const curatorApi = {
   updateLesson: (id: number, data: object) => api.patch(`/curator/lessons/${id}`, data).then((r) => r.data),
   addLesson: (data: object) => api.post('/curator/lessons', data).then((r) => r.data),
   teachers: () => api.get('/curator/teachers').then((r) => r.data),
+  setStarosta: (groupId: number, studentId: number | null) =>
+    api.patch(`/curator/groups/${groupId}/starosta`, { studentId }).then((r) => r.data),
   lessons: (groupId?: number) => api.get('/curator/lessons', { params: groupId ? { groupId } : {} }).then((r) => r.data),
   groupSchedule: (groupId: number) => api.get(`/curator/schedule/${groupId}`).then((r) => r.data),
   lessonStudents: (id: number) => api.get(`/curator/lessons/${id}/students`).then((r) => r.data),
