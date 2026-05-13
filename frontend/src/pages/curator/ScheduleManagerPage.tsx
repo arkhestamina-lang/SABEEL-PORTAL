@@ -21,7 +21,14 @@ export default function ScheduleManagerPage() {
   const [showNewSem, setShowNewSem] = useState(false);
   const [newSem, setNewSem] = useState({ name: '', startDate: '', endDate: '' });
 
-  const [newTpl, setNewTpl] = useState({ dayOfWeek: 1, timeHour: 10, timeMinute: 0, subject: '', teacherId: '', meetingUrl: '' });
+  const [newTpl, setNewTpl] = useState({ days: [] as number[], timeHour: 10, timeMinute: 0, subject: '', teacherId: '', meetingUrl: '' });
+
+  function toggleDay(day: number) {
+    setNewTpl((t) => ({
+      ...t,
+      days: t.days.includes(day) ? t.days.filter((d) => d !== day) : [...t.days, day],
+    }));
+  }
   const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
@@ -60,16 +67,25 @@ export default function ScheduleManagerPage() {
   }
 
   async function addTemplate() {
-    if (!selectedSem || !newTpl.subject) return;
-    const t = await curatorApi.addTemplate(selectedSem.id, {
-      ...newTpl,
-      teacherId: newTpl.teacherId ? parseInt(newTpl.teacherId) : undefined,
-      meetingUrl: newTpl.meetingUrl || undefined,
-    });
-    const updated = { ...selectedSem, templates: [...selectedSem.templates, t] };
+    if (!selectedSem || !newTpl.subject || newTpl.days.length === 0) return;
+
+    const newTemplates = await Promise.all(
+      newTpl.days.sort().map((day) =>
+        curatorApi.addTemplate(selectedSem.id, {
+          dayOfWeek: day,
+          timeHour: newTpl.timeHour,
+          timeMinute: newTpl.timeMinute,
+          subject: newTpl.subject,
+          teacherId: newTpl.teacherId ? parseInt(newTpl.teacherId) : undefined,
+          meetingUrl: newTpl.meetingUrl || undefined,
+        })
+      )
+    );
+
+    const updated = { ...selectedSem, templates: [...selectedSem.templates, ...newTemplates] };
     setSelectedSem(updated);
     setSemesters((ss) => ss.map((s) => s.id === selectedSem.id ? updated : s));
-    setNewTpl({ dayOfWeek: 1, timeHour: 10, timeMinute: 0, subject: '', teacherId: '', meetingUrl: '' });
+    setNewTpl({ days: [], timeHour: 10, timeMinute: 0, subject: '', teacherId: '', meetingUrl: '' });
   }
 
   async function generate() {
@@ -115,11 +131,31 @@ export default function ScheduleManagerPage() {
         {/* Форма нового урока */}
         <div className="bg-card rounded-2xl p-4 flex flex-col gap-3">
           <p className="font-heading uppercase tracking-wide text-sm text-dark/60">Добавить урок</p>
+
+          {/* Выбор дней недели */}
+          <div>
+            <p className="font-body text-[10px] text-muted uppercase tracking-widest mb-2">
+              Дни недели {newTpl.days.length > 0 && <span className="text-primary">· выбрано {newTpl.days.length}</span>}
+            </p>
+            <div className="flex gap-1.5">
+              {DAYS.map((d, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => toggleDay(i)}
+                  className={`flex-1 py-2 rounded-xl font-body text-xs font-medium transition-all active:scale-95 ${
+                    newTpl.days.includes(i)
+                      ? 'bg-primary text-white'
+                      : 'bg-bg text-muted hover:bg-primary/10'
+                  }`}
+                >
+                  {d}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="flex gap-2 items-center">
-            <select value={newTpl.dayOfWeek} onChange={(e) => setNewTpl((t) => ({ ...t, dayOfWeek: +e.target.value }))}
-              className="flex-1 bg-bg border border-black/10 rounded-xl px-3 py-2 font-body text-sm focus:outline-none focus:border-primary">
-              {DAYS.map((d, i) => <option key={i} value={i}>{d}</option>)}
-            </select>
             <input type="number" min={0} max={23} value={newTpl.timeHour}
               onChange={(e) => setNewTpl((t) => ({ ...t, timeHour: +e.target.value }))}
               className="w-14 bg-bg border border-black/10 rounded-xl px-3 py-2 font-body text-sm text-center focus:outline-none focus:border-primary" />
@@ -139,9 +175,14 @@ export default function ScheduleManagerPage() {
           <input type="url" placeholder="Ссылка Zoom / Meet (необязательно)" value={newTpl.meetingUrl}
             onChange={(e) => setNewTpl((t) => ({ ...t, meetingUrl: e.target.value }))}
             className="w-full bg-bg border border-black/10 rounded-xl px-3 py-2 font-body text-sm focus:outline-none focus:border-primary" />
-          <button onClick={addTemplate} disabled={!newTpl.subject}
-            className="w-full bg-primary text-white font-heading uppercase text-xs py-3 rounded-xl disabled:opacity-60">
-            Добавить в шаблон
+          <button
+            onClick={addTemplate}
+            disabled={!newTpl.subject || newTpl.days.length === 0}
+            className="w-full bg-primary text-white font-heading uppercase text-xs py-3 rounded-xl disabled:opacity-60 active:scale-[0.98]"
+          >
+            {newTpl.days.length > 1
+              ? `Добавить ${newTpl.days.length} урока в шаблон`
+              : 'Добавить в шаблон'}
           </button>
         </div>
 
