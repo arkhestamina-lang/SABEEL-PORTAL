@@ -1,0 +1,17 @@
+- generic [ref=e57]:
+  - generic [ref=e58]:
+    - paragraph [ref=e59]: Онлайн-университет
+    - heading "Sabeel" [level=1] [ref=e60]
+  - generic [ref=e62]:
+    - generic [ref=e63]:
+      - generic [ref=e64]: Логин
+      - textbox "ahmed.aliev123" [ref=e65]
+    - generic [ref=e66]:
+      - generic [ref=e67]: Пароль
+      - generic [ref=e68]:
+        - textbox "••••••••" [ref=e69]
+        - button [ref=e70] [cursor=pointer]:
+          - img [ref=e71]
+    - button "Войти" [ref=e74] [cursor=pointer]:
+      - generic [ref=e75]: Войти
+      - img [ref=e76]

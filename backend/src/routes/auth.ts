@@ -7,36 +7,18 @@ import { requireAuth, AuthRequest } from '../middleware/auth';
 
 export const authRouter = Router();
 
-const registerSchema = z.discriminatedUnion('role', [
-  z.object({
-    role: z.literal('STUDENT'),
-    firstName: z.string().min(1),
-    lastName: z.string().min(1),
-    email: z.string().email(),
-    password: z.string().min(6),
-    course: z.number().int().min(1).max(4),
-    groupId: z.number().int(),
-  }),
-  z.object({
-    role: z.literal('CURATOR'),
-    firstName: z.string().min(1),
-    lastName: z.string().min(1),
-    email: z.string().email(),
-    password: z.string().min(6),
-    secretCode: z.string(),
-  }),
-  z.object({
-    role: z.literal('TEACHER'),
-    firstName: z.string().min(1),
-    lastName: z.string().min(1),
-    email: z.string().email(),
-    password: z.string().min(6),
-    secretCode: z.string(),
-  }),
-]);
+const curatorRegisterSchema = z.object({
+  role: z.literal('CURATOR'),
+  firstName: z.string().min(1),
+  lastName: z.string().min(1),
+  email: z.string().min(1),
+  password: z.string().min(6),
+  secretCode: z.string(),
+});
 
+// Регистрация только для куратора — студентов создаёт куратор через /curator/students
 authRouter.post('/register', async (req: Request, res: Response) => {
-  const parsed = registerSchema.safeParse(req.body);
+  const parsed = curatorRegisterSchema.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.flatten() });
     return;
@@ -44,12 +26,8 @@ authRouter.post('/register', async (req: Request, res: Response) => {
 
   const data = parsed.data;
 
-  if (data.role === 'CURATOR' && data.secretCode !== process.env.CURATOR_SECRET_CODE) {
+  if (data.secretCode !== process.env.CURATOR_SECRET_CODE) {
     res.status(403).json({ error: 'Неверный код куратора' });
-    return;
-  }
-  if (data.role === 'TEACHER' && data.secretCode !== process.env.TEACHER_SECRET_CODE) {
-    res.status(403).json({ error: 'Неверный код учителя' });
     return;
   }
 
@@ -60,17 +38,8 @@ authRouter.post('/register', async (req: Request, res: Response) => {
   }
 
   const passwordHash = await bcrypt.hash(data.password, 10);
-
   const user = await prisma.user.create({
-    data: {
-      firstName: data.firstName,
-      lastName: data.lastName,
-      email: data.email,
-      passwordHash,
-      role: data.role,
-      course: data.role === 'STUDENT' ? data.course : null,
-      groupId: data.role === 'STUDENT' ? data.groupId : null,
-    },
+    data: { firstName: data.firstName, lastName: data.lastName, email: data.email, passwordHash, role: 'CURATOR' },
   });
 
   const token = signToken({ id: user.id, role: user.role });
@@ -94,18 +63,24 @@ authRouter.post('/login', async (req: Request, res: Response) => {
   res.json({ token, user: { id: user.id, firstName: user.firstName, lastName: user.lastName, role: user.role, course: user.course, groupId: user.groupId } });
 });
 
-// Публичный список групп — для регистрации студента
-authRouter.get('/groups', async (_req: Request, res: Response) => {
-  const groups = await prisma.group.findMany({
-    select: { id: true, name: true, course: true },
-    orderBy: [{ course: 'asc' }, { name: 'asc' }],
-  });
-  res.json(groups);
-});
 
 authRouter.delete('/me', requireAuth, async (req: AuthRequest, res: Response) => {
   const id = req.user!.id;
   await prisma.user.delete({ where: { id } });
+  res.json({ ok: true });
+});
+
+authRouter.patch('/change-password', requireAuth, async (req: AuthRequest, res: Response) => {
+  const { currentPassword, newPassword } = req.body;
+  if (!currentPassword || !newPassword || newPassword.length < 6) {
+    res.status(400).json({ error: 'Укажи текущий и новый пароль (минимум 6 символов)' }); return;
+  }
+  const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
+  if (!user || !(await bcrypt.compare(currentPassword, user.passwordHash))) {
+    res.status(401).json({ error: 'Неверный текущий пароль' }); return;
+  }
+  const passwordHash = await bcrypt.hash(newPassword, 10);
+  await prisma.user.update({ where: { id: user.id }, data: { passwordHash } });
   res.json({ ok: true });
 });
 

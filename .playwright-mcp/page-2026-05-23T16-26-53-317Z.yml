@@ -1,0 +1,39 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - heading "Профиль" [level=1] [ref=e5]
+    - generic [ref=e6]:
+      - generic [ref=e8]: А
+      - generic [ref=e9]:
+        - paragraph [ref=e10]: Айша Муминова
+        - paragraph [ref=e11]: curator@sabil.com
+        - paragraph [ref=e12]: Куратор
+    - button "Экспорт данных в Excel" [ref=e13] [cursor=pointer]:
+      - img [ref=e14]
+      - generic [ref=e17]: Экспорт данных в Excel
+    - button "Сменить пароль" [ref=e18] [cursor=pointer]:
+      - img [ref=e19]
+      - generic [ref=e22]: Сменить пароль
+    - button "Выйти" [ref=e23] [cursor=pointer]
+    - button "Удалить аккаунт" [ref=e24] [cursor=pointer]
+  - navigation [ref=e25]:
+    - generic [ref=e26]:
+      - link "Студенты" [ref=e27] [cursor=pointer]:
+        - /url: /students
+        - img [ref=e29]
+        - generic [ref=e34]: Студенты
+      - link "Заявки" [ref=e35] [cursor=pointer]:
+        - /url: /absences
+        - img [ref=e37]
+        - generic [ref=e40]: Заявки
+      - link "Расписание" [ref=e41] [cursor=pointer]:
+        - /url: /attendance
+        - img [ref=e43]
+        - generic [ref=e45]: Расписание
+      - link "Экзамены" [ref=e46] [cursor=pointer]:
+        - /url: /exams
+        - img [ref=e48]
+        - generic [ref=e50]: Экзамены
+      - link "Профиль" [ref=e51] [cursor=pointer]:
+        - /url: /curator-profile
+        - img [ref=e53]
+        - generic [ref=e56]: Профиль

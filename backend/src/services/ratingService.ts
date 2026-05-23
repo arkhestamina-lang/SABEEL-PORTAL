@@ -1,6 +1,6 @@
 import prisma from '../utils/prisma';
 
-const QURAN_WEEKLY_NORM: Record<number, number> = { 1: 0, 2: 1, 3: 2, 4: 3 };
+const QURAN_WEEKLY_NORM: Record<number, number> = { 1: 7, 2: 1, 3: 2, 4: 3 };
 
 function monthBounds(year: number, month: number) {
   const start = new Date(year, month - 1, 1);
@@ -8,11 +8,27 @@ function monthBounds(year: number, month: number) {
   return { start, end };
 }
 
+// Суммарный рейтинг за произвольный период (семестр)
+export async function calcRatingForSemester(studentId: number, startDate: Date, endDate: Date) {
+  let total = 0;
+  let months = 0;
+  const cursor = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+  const endMonth = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+  while (cursor <= endMonth) {
+    const r = await calcRating(studentId, cursor.getFullYear(), cursor.getMonth() + 1);
+    total += r.total;
+    months++;
+    cursor.setMonth(cursor.getMonth() + 1);
+  }
+  return { total, maxTotal: months * 100, months };
+}
+
 export async function calcRating(studentId: number, year: number, month: number) {
   const { start, end } = monthBounds(year, month);
 
-  const user = await prisma.user.findUnique({ where: { id: studentId }, select: { course: true } });
+  const user = await prisma.user.findUnique({ where: { id: studentId }, select: { course: true, groupId: true } });
   const course = user?.course ?? 1;
+  const groupId = user?.groupId;
 
   // Посещаемость — считаем только COUNTED пропуски
   const absences = await prisma.attendanceMark.count({
@@ -37,14 +53,24 @@ export async function calcRating(studentId: number, year: number, month: number)
   });
   const countedAbsences = countedAbsenceMarks.filter((m) => !excusedIds.has(m.lessonId)).length;
 
-  // ДЗ
-  const hwMisses = await prisma.homeworkMiss.count({
-    where: { studentId, lesson: { datetime: { gte: start, lt: end } } },
+  // ДЗ — все прошедшие уроки группы за месяц без submission
+  const now = new Date();
+  const pastLessons = groupId
+    ? await prisma.lesson.findMany({
+        where: { groupId, isCancelled: false, datetime: { gte: start, lt: end, lte: now } },
+        select: { id: true },
+      })
+    : [];
+  const submissions = await prisma.homeworkSubmission.findMany({
+    where: { studentId, lessonId: { in: pastLessons.map((l) => l.id) } },
+    select: { lessonId: true },
   });
+  const submittedSet = new Set(submissions.map((s) => s.lessonId));
+  const hwMisses = pastLessons.filter((l) => !submittedSet.has(l.id)).length;
 
   // Коран
   let quranScore = 0;
-  if (course > 1) {
+  {
     const weeklyNorm = QURAN_WEEKLY_NORM[course] ?? 0;
     const weeksInMonth = 4;
     const monthlyNorm = weeklyNorm * weeksInMonth;
@@ -64,7 +90,8 @@ export async function calcRating(studentId: number, year: number, month: number)
   const daysInMonth = new Date(year, month, 0).getDate();
   const readingDays = habitEntries.filter((e) => e.reading).length;
   const listeningDays = habitEntries.filter((e) => e.listening).length;
-  const habitsPct = ((readingDays + listeningDays) / 2 / daysInMonth);
+  const revisionDays = habitEntries.filter((e) => (e as any).revision).length;
+  const habitsPct = ((readingDays + listeningDays + revisionDays) / 3 / daysInMonth);
   const habitsScore = Math.round(habitsPct * 10);
 
   const attendanceScore = Math.max(0, 40 - countedAbsences * 8);

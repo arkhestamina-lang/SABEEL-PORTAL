@@ -37,6 +37,8 @@ export interface Lesson {
   isPast?: boolean;
   hwSubmitted?: boolean;
   meetingUrl?: string | null;
+  debtStatus?: 'PENDING' | 'ACCEPTED' | 'REJECTED' | null;
+  hwDeadlinePassed?: boolean;
 }
 
 export interface ScheduleTemplate {
@@ -83,12 +85,20 @@ export interface Exam {
   scores: ExamScore[];
 }
 
+export interface HolidayPeriod {
+  id: number;
+  name: string;
+  startDate: string;
+  endDate: string;
+}
+
 export interface Semester {
   id: number;
   name: string;
   startDate: string;
   endDate: string;
   templates: ScheduleTemplate[];
+  holidays: HolidayPeriod[];
 }
 
 

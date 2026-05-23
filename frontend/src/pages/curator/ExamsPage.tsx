@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 
 interface Group { id: number; name: string; course: number }
+interface Student { id: number; firstName: string; lastName: string }
 interface ExamScore { id: number; score: number; maxScore: number; student: { firstName: string; lastName: string } }
 interface Exam { id: number; title: string; date: string; formUrl?: string; group: { name: string }; groupId: number; scores: ExamScore[] }
 
@@ -12,12 +13,14 @@ export default function ExamsPage() {
   const [groupId, setGroupId] = useState<number | undefined>(undefined);
   const [exams, setExams] = useState<Exam[]>([]);
   const [selectedExam, setSelectedExam] = useState<Exam | null>(null);
+  const [groupStudents, setGroupStudents] = useState<Student[]>([]);
   const [showForm, setShowForm] = useState(false);
-  const [newExam, setNewExam] = useState({ title: '', date: '', formUrl: '', groupId: '' });
+  const [newExam, setNewExam] = useState({ title: '', date: '', formUrl: '', groupId: '', startHour: '9', startMinute: '0', durationMinutes: '60' });
   const [scoreModal, setScoreModal] = useState<{ studentId: number; name: string } | null>(null);
   const [scoreInput, setScoreInput] = useState('');
   const [maxScoreInput, setMaxScoreInput] = useState('100');
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
+  const [editExam, setEditExam] = useState<{ title: string; date: string; formUrl: string; startHour: string; startMinute: string; durationMinutes: string } | null>(null);
 
   useEffect(() => {
     curatorApi.groups().then((gs) => { setGroups(gs); if (gs.length > 0) setGroupId(gs[0].id); });
@@ -27,11 +30,18 @@ export default function ExamsPage() {
     if (groupId !== undefined) curatorApi.exams(groupId).then(setExams);
   }, [groupId]);
 
+  useEffect(() => {
+    if (selectedExam) curatorApi.students(selectedExam.groupId).then(setGroupStudents);
+  }, [selectedExam?.id]);
+
   async function createExam() {
     if (!newExam.title || !newExam.date || !newExam.groupId) return;
-    const exam = await curatorApi.createExam(newExam.title, newExam.date, parseInt(newExam.groupId), newExam.formUrl || undefined);
+    const exam = await curatorApi.createExam(
+      newExam.title, newExam.date, parseInt(newExam.groupId), newExam.formUrl || undefined,
+      parseInt(newExam.startHour), parseInt(newExam.startMinute), parseInt(newExam.durationMinutes),
+    );
     setExams((es) => [{ ...exam, scores: [], group: groups.find((g) => g.id === exam.groupId) ?? { name: '' } }, ...es]);
-    setNewExam({ title: '', date: '', formUrl: '', groupId: '' });
+    setNewExam({ title: '', date: '', formUrl: '', groupId: '', startHour: '9', startMinute: '0', durationMinutes: '60' });
     setShowForm(false);
   }
 
@@ -71,23 +81,75 @@ export default function ExamsPage() {
             <h1 className="font-heading text-xl uppercase tracking-wide text-dark">{selectedExam.title}</h1>
             <p className="font-body text-xs text-dark/50 mt-0.5">
               {format(new Date(selectedExam.date), 'd MMMM yyyy', { locale: ru })} · {selectedExam.group.name}
+              {(selectedExam as any).startHour != null && ` · ${String((selectedExam as any).startHour).padStart(2,'0')}:${String((selectedExam as any).startMinute ?? 0).padStart(2,'0')}`}
+              {(selectedExam as any).durationMinutes != null && ` · ${(selectedExam as any).durationMinutes} мин`}
             </p>
             {selectedExam.formUrl && (
               <a href={selectedExam.formUrl} target="_blank" rel="noreferrer"
                 className="font-body text-xs text-primary underline mt-1 block">
-                Открыть Google Форму
+                Открыть ссылку
               </a>
             )}
           </div>
-          {confirmDelete === selectedExam.id ? (
-            <div className="flex gap-2 items-center">
-              <button onClick={() => setConfirmDelete(null)} className="text-dark/40 text-xs font-body">Отмена</button>
-              <button onClick={() => deleteExam(selectedExam.id)} className="text-red-500 text-xs font-body font-medium">Удалить</button>
-            </div>
-          ) : (
-            <button onClick={() => setConfirmDelete(selectedExam.id)} className="text-dark/25 text-xs font-body">Удалить</button>
-          )}
+          <div className="flex gap-3 items-center">
+            <button onClick={() => setEditExam({
+              title: selectedExam.title,
+              date: new Date(selectedExam.date).toISOString().slice(0,10),
+              formUrl: selectedExam.formUrl ?? '',
+              startHour: String((selectedExam as any).startHour ?? '9'),
+              startMinute: String((selectedExam as any).startMinute ?? '0'),
+              durationMinutes: String((selectedExam as any).durationMinutes ?? '60'),
+            })} className="text-primary text-xs font-body">Изменить</button>
+            {confirmDelete === selectedExam.id ? (
+              <div className="flex gap-2 items-center">
+                <button onClick={() => setConfirmDelete(null)} className="text-dark/40 text-xs font-body">Отмена</button>
+                <button onClick={() => deleteExam(selectedExam.id)} className="text-red-500 text-xs font-body font-medium">Удалить</button>
+              </div>
+            ) : (
+              <button onClick={() => setConfirmDelete(selectedExam.id)} className="text-dark/25 text-xs font-body">Удалить</button>
+            )}
+          </div>
         </div>
+
+        {/* Форма редактирования */}
+        {editExam && (
+          <div className="bg-card rounded-2xl p-4 flex flex-col gap-3">
+            <p className="font-heading uppercase tracking-wide text-sm text-dark/60">Редактировать экзамен</p>
+            <input type="text" value={editExam.title} onChange={(e) => setEditExam((v) => v && ({ ...v, title: e.target.value }))}
+              className="w-full bg-bg border border-black/10 rounded-xl px-3 py-2 font-body text-sm focus:outline-none focus:border-primary" />
+            <input type="date" value={editExam.date} onChange={(e) => setEditExam((v) => v && ({ ...v, date: e.target.value }))}
+              className="w-full bg-bg border border-black/10 rounded-xl px-3 py-2 font-body text-sm focus:outline-none focus:border-primary" />
+            <div className="flex gap-2 items-center flex-wrap">
+              <input type="number" min={0} max={23} value={editExam.startHour}
+                onChange={(e) => setEditExam((v) => v && ({ ...v, startHour: e.target.value }))}
+                className="w-14 bg-bg border border-black/10 rounded-xl px-3 py-2 font-body text-sm text-center focus:outline-none focus:border-primary" />
+              <span className="text-dark/40">:</span>
+              <input type="number" min={0} max={59} step={5} value={editExam.startMinute}
+                onChange={(e) => setEditExam((v) => v && ({ ...v, startMinute: e.target.value }))}
+                className="w-14 bg-bg border border-black/10 rounded-xl px-3 py-2 font-body text-sm text-center focus:outline-none focus:border-primary" />
+              <span className="text-dark/40 text-xs">мин:</span>
+              <input type="number" min={5} max={300} step={5} value={editExam.durationMinutes}
+                onChange={(e) => setEditExam((v) => v && ({ ...v, durationMinutes: e.target.value }))}
+                className="w-16 bg-bg border border-black/10 rounded-xl px-3 py-2 font-body text-sm text-center focus:outline-none focus:border-primary" />
+            </div>
+            <input type="text" placeholder="Ссылка (необязательно)" value={editExam.formUrl}
+              onChange={(e) => setEditExam((v) => v && ({ ...v, formUrl: e.target.value }))}
+              className="w-full bg-bg border border-black/10 rounded-xl px-3 py-2 font-body text-sm focus:outline-none focus:border-primary" />
+            <div className="flex gap-2">
+              <button onClick={() => setEditExam(null)} className="flex-1 bg-bg text-dark/60 font-heading uppercase text-xs py-2.5 rounded-xl">Отмена</button>
+              <button onClick={async () => {
+                const updated = await curatorApi.updateExam(selectedExam.id, {
+                  title: editExam.title, date: editExam.date, formUrl: editExam.formUrl || null,
+                  startHour: parseInt(editExam.startHour), startMinute: parseInt(editExam.startMinute),
+                  durationMinutes: parseInt(editExam.durationMinutes),
+                });
+                setSelectedExam(updated);
+                setExams((es) => es.map((e) => e.id === updated.id ? updated : e));
+                setEditExam(null);
+              }} className="flex-1 bg-primary text-white font-heading uppercase text-xs py-2.5 rounded-xl">Сохранить</button>
+            </div>
+          </div>
+        )}
 
         {/* Список студентов с баллами */}
         <div className="bg-card rounded-2xl p-4">
@@ -111,19 +173,29 @@ export default function ExamsPage() {
           ))}
         </div>
 
-        {/* Ввести балл вручную */}
+        {/* Ввести балл — выбор студента по имени */}
         <div className="bg-card rounded-2xl p-4 flex flex-col gap-3">
-          <p className="font-heading uppercase tracking-wide text-sm text-dark/60">Ввести балл вручную</p>
-          <p className="font-body text-xs text-dark/40">Введи ID студента или добавь через карточку студента</p>
+          <p className="font-heading uppercase tracking-wide text-sm text-dark/60">Ввести балл</p>
+          <select
+            value={scoreModal?.studentId ?? ''}
+            onChange={(e) => {
+              const id = parseInt(e.target.value);
+              const st = groupStudents.find((s) => s.id === id);
+              if (st) setScoreModal({ studentId: id, name: `${st.firstName} ${st.lastName}` });
+            }}
+            className="w-full bg-bg border border-black/10 rounded-xl px-3 py-2.5 font-body text-sm focus:outline-none focus:border-primary"
+          >
+            <option value="">Выбери студента...</option>
+            {groupStudents.map((s) => (
+              <option key={s.id} value={s.id}>{s.lastName} {s.firstName}</option>
+            ))}
+          </select>
           <div className="flex gap-2">
-            <input type="number" placeholder="ID студента" value={scoreModal?.studentId ?? ''}
-              onChange={(e) => setScoreModal((m) => m ? { ...m, studentId: parseInt(e.target.value) } : { studentId: parseInt(e.target.value), name: '' })}
-              className="flex-1 bg-bg border border-black/10 rounded-xl px-3 py-2 font-body text-sm focus:outline-none focus:border-primary" />
             <input type="number" placeholder="Балл" value={scoreInput} onChange={(e) => setScoreInput(e.target.value)}
-              className="w-20 bg-bg border border-black/10 rounded-xl px-3 py-2 font-body text-sm text-center focus:outline-none focus:border-primary" />
+              className="flex-1 bg-bg border border-black/10 rounded-xl px-3 py-2 font-body text-sm text-center focus:outline-none focus:border-primary" />
             <span className="self-center text-dark/40 font-body text-sm">/</span>
             <input type="number" placeholder="Max" value={maxScoreInput} onChange={(e) => setMaxScoreInput(e.target.value)}
-              className="w-16 bg-bg border border-black/10 rounded-xl px-3 py-2 font-body text-sm text-center focus:outline-none focus:border-primary" />
+              className="w-20 bg-bg border border-black/10 rounded-xl px-3 py-2 font-body text-sm text-center focus:outline-none focus:border-primary" />
           </div>
           <button onClick={saveScore} disabled={!scoreInput || !scoreModal?.studentId}
             className="w-full bg-primary text-white font-heading uppercase text-xs py-3 rounded-xl disabled:opacity-60">
@@ -190,7 +262,23 @@ export default function ExamsPage() {
             <input type="date" value={newExam.date} onChange={(e) => setNewExam((n) => ({ ...n, date: e.target.value }))}
               className="w-full bg-bg border border-black/10 rounded-xl px-3 py-2 font-body text-sm focus:outline-none focus:border-primary" />
           </div>
-          <input type="url" placeholder="Ссылка на Google Форму (необязательно)" value={newExam.formUrl}
+          <div>
+            <label className="text-[10px] text-dark/40 font-body">Время начала</label>
+            <div className="flex gap-2 items-center">
+              <input type="number" min={0} max={23} value={newExam.startHour}
+                onChange={(e) => setNewExam((n) => ({ ...n, startHour: e.target.value }))}
+                className="w-16 bg-bg border border-black/10 rounded-xl px-3 py-2 font-body text-sm text-center focus:outline-none focus:border-primary" />
+              <span className="text-dark/40 font-body">:</span>
+              <input type="number" min={0} max={59} step={5} value={newExam.startMinute}
+                onChange={(e) => setNewExam((n) => ({ ...n, startMinute: e.target.value }))}
+                className="w-16 bg-bg border border-black/10 rounded-xl px-3 py-2 font-body text-sm text-center focus:outline-none focus:border-primary" />
+              <span className="text-dark/40 font-body text-xs">Продолжительность (мин):</span>
+              <input type="number" min={5} max={300} step={5} value={newExam.durationMinutes}
+                onChange={(e) => setNewExam((n) => ({ ...n, durationMinutes: e.target.value }))}
+                className="w-16 bg-bg border border-black/10 rounded-xl px-3 py-2 font-body text-sm text-center focus:outline-none focus:border-primary" />
+            </div>
+          </div>
+          <input type="text" placeholder="Ссылка на Google Форму (необязательно)" value={newExam.formUrl}
             onChange={(e) => setNewExam((n) => ({ ...n, formUrl: e.target.value }))}
             className="w-full bg-bg border border-black/10 rounded-xl px-3 py-2 font-body text-sm focus:outline-none focus:border-primary" />
           <div className="flex gap-2">

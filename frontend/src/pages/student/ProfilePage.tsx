@@ -2,12 +2,16 @@ import { useState } from 'react';
 import { useAuthStore } from '../../store/authStore';
 import { useNavigate } from 'react-router-dom';
 import { authApi } from '../../api';
-import { LogOut, Trash2, ChevronRight } from 'lucide-react';
+import { LogOut, Trash2, ChevronRight, MessageCircle, Lock } from 'lucide-react';
 
 export default function ProfilePage() {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [showPwForm, setShowPwForm] = useState(false);
+  const [pwForm, setPwForm] = useState({ current: '', next: '' });
+  const [pwError, setPwError] = useState('');
+  const [pwSaving, setPwSaving] = useState(false);
 
   function handleLogout() { logout(); navigate('/login'); }
 
@@ -33,6 +37,7 @@ export default function ProfilePage() {
         <div>
           <p className="font-heading text-lg uppercase tracking-wide text-dark">{user?.firstName} {user?.lastName}</p>
           <p className="font-body text-xs text-muted">{user?.email}</p>
+          <p className="font-body text-[10px] text-muted/60 mt-0.5">логин для входа</p>
           <div className="flex gap-2 mt-2 flex-wrap">
             {user?.course && <Chip label={`${user.course} курс`} />}
             {user?.group?.name && <Chip label={user.group.name} />}
@@ -40,6 +45,52 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* Связаться с куратором */}
+      <a
+        href="https://t.me/curator_sabeel"
+        target="_blank"
+        rel="noreferrer"
+        className="w-full bg-card rounded-2xl px-4 py-3.5 flex items-center gap-3 shadow-card hover:shadow-float active:scale-[0.98] fade-up"
+      >
+        <MessageCircle size={16} className="text-primary" />
+        <span className="font-body text-sm text-dark">Связаться с куратором</span>
+        <ChevronRight size={16} className="text-muted ml-auto" />
+      </a>
+
+      {/* Смена пароля */}
+      {!showPwForm ? (
+        <button onClick={() => setShowPwForm(true)} className="w-full bg-card rounded-2xl px-4 py-3.5 flex items-center gap-3 shadow-card hover:shadow-float active:scale-[0.98] fade-up">
+          <Lock size={16} className="text-muted" />
+          <span className="font-body text-sm text-dark">Сменить пароль</span>
+          <ChevronRight size={16} className="text-muted ml-auto" />
+        </button>
+      ) : (
+        <div className="bg-card rounded-2xl p-4 flex flex-col gap-3 fade-up">
+          <p className="font-heading uppercase tracking-wide text-sm text-dark">Смена пароля</p>
+          <input type="password" placeholder="Текущий пароль" value={pwForm.current}
+            onChange={(e) => setPwForm((f) => ({ ...f, current: e.target.value }))}
+            className="w-full bg-bg border border-border rounded-xl px-4 py-3 font-body text-sm focus:outline-none focus:border-primary" />
+          <input type="password" placeholder="Новый пароль (минимум 6 символов)" value={pwForm.next}
+            onChange={(e) => setPwForm((f) => ({ ...f, next: e.target.value }))}
+            className="w-full bg-bg border border-border rounded-xl px-4 py-3 font-body text-sm focus:outline-none focus:border-primary" />
+          {pwError && <p className="font-body text-xs text-red-500">{pwError}</p>}
+          <div className="flex gap-2">
+            <button onClick={() => { setShowPwForm(false); setPwForm({ current: '', next: '' }); setPwError(''); }}
+              className="flex-1 bg-bg text-dark/50 font-heading uppercase text-xs py-3 rounded-xl">Отмена</button>
+            <button disabled={pwSaving || !pwForm.current || !pwForm.next} onClick={async () => {
+              setPwError(''); setPwSaving(true);
+              try {
+                await authApi.changePassword(pwForm.current, pwForm.next);
+                setShowPwForm(false); setPwForm({ current: '', next: '' });
+              } catch (e: any) { setPwError(e.response?.data?.error || 'Ошибка'); }
+              setPwSaving(false);
+            }} className="flex-1 bg-primary text-white font-heading uppercase text-xs py-3 rounded-xl disabled:opacity-50">
+              {pwSaving ? '...' : 'Сохранить'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Действия */}
       <div className="flex flex-col gap-2 mt-2 fade-up">

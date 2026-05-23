@@ -15,7 +15,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
   settings: Settings,
 };
 
-interface Tab { to: string; label: string; icon: string }
+interface Tab { to: string; label: string; icon: string; badge?: number }
 
 export default function BottomNav({ tabs }: { tabs: Tab[] }) {
   return (
@@ -35,7 +35,14 @@ export default function BottomNav({ tabs }: { tabs: Tab[] }) {
             >
               {({ isActive }) => (
                 <>
-                  <Icon size={20} strokeWidth={isActive ? 2.5 : 1.8} />
+                  <div className="relative">
+                    <Icon size={20} strokeWidth={isActive ? 2.5 : 1.8} />
+                    {tab.badge != null && tab.badge > 0 && (
+                      <span className="absolute -top-1 -right-1.5 min-w-[14px] h-3.5 bg-red-500 text-white text-[8px] font-heading rounded-full flex items-center justify-center px-0.5">
+                        {tab.badge > 9 ? '9+' : tab.badge}
+                      </span>
+                    )}
+                  </div>
                   <span className={`text-[9px] font-body tracking-wide ${isActive ? 'font-semibold' : ''}`}>
                     {tab.label}
                   </span>

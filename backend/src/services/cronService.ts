@@ -7,7 +7,7 @@ export function startCronJobs() {
     const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
     const unmarkedAbsences = await prisma.attendanceMark.findMany({
-      where: { present: false, markedAt: { lt: cutoff } },
+      where: { present: false, lesson: { datetime: { lt: cutoff } } },
       select: { lessonId: true, studentId: true },
     });
 

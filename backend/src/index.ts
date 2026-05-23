@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
@@ -25,6 +25,13 @@ app.use('/api', photosRouter);
 app.use('/api/starosta', starostaRouter);
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
+
+// Глобальный обработчик ошибок — ловит Prisma и прочие необработанные исключения
+app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+  if (err?.code === 'P2025') { res.status(404).json({ error: 'Запись не найдена' }); return; }
+  if (err?.code === 'P2002') { res.status(409).json({ error: 'Такая запись уже существует' }); return; }
+  res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+});
 
 startCronJobs();
 

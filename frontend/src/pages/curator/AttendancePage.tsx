@@ -23,6 +23,10 @@ export default function AttendancePage() {
   const [tab, setTab] = useState<'attendance' | 'homework'>('attendance');
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [rescheduleLesson, setRescheduleLesson] = useState<Lesson | null>(null);
+  const [rescheduleDate, setRescheduleDate] = useState('');
+  const [rescheduleHour, setRescheduleHour] = useState(10);
+  const [rescheduleMinute, setRescheduleMinute] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -215,7 +219,60 @@ export default function AttendancePage() {
       )}
 
       {selectedGroup && lessons.length > 0 && (
-        <CalendarView lessons={lessons} onLessonPress={openLesson} />
+        <CalendarView
+          lessons={lessons}
+          onLessonPress={openLesson}
+          onCancelLesson={async (lesson) => {
+            await curatorApi.updateLesson(lesson.id, { isCancelled: true });
+            setLessons((ls) => ls.map((l) => l.id === lesson.id ? { ...l, isCancelled: true } : l));
+          }}
+          onRescheduleLesson={(lesson) => {
+            setRescheduleLesson(lesson);
+            setRescheduleDate(format(new Date(lesson.datetime), 'yyyy-MM-dd'));
+            setRescheduleHour(new Date(lesson.datetime).getHours());
+            setRescheduleMinute(new Date(lesson.datetime).getMinutes());
+          }}
+        />
+      )}
+
+      {rescheduleLesson && (
+        <div className="fixed inset-0 bg-black/40 flex items-end z-50" onClick={() => setRescheduleLesson(null)}>
+          <div className="bg-card w-full max-w-[480px] mx-auto rounded-t-3xl p-6" onClick={(e) => e.stopPropagation()}>
+            <h2 className="font-heading uppercase tracking-wide text-dark text-lg mb-1">Перенести урок</h2>
+            <p className="font-body text-xs text-dark/50 mb-4">{rescheduleLesson.subject}</p>
+            <div className="flex flex-col gap-3">
+              <div>
+                <label className="font-body text-[10px] text-dark/40 uppercase tracking-wider">Новая дата</label>
+                <input type="date" value={rescheduleDate} onChange={(e) => setRescheduleDate(e.target.value)}
+                  className="w-full mt-1 bg-bg border border-black/10 rounded-xl px-4 py-3 font-body text-sm focus:outline-none focus:border-primary" />
+              </div>
+              <div>
+                <label className="font-body text-[10px] text-dark/40 uppercase tracking-wider">Время</label>
+                <div className="flex gap-2 mt-1 items-center">
+                  <input type="number" min={0} max={23} value={rescheduleHour} onChange={(e) => setRescheduleHour(+e.target.value)}
+                    className="w-16 bg-bg border border-black/10 rounded-xl px-3 py-2 font-body text-sm text-center focus:outline-none focus:border-primary" />
+                  <span className="text-dark/40">:</span>
+                  <input type="number" min={0} max={59} step={5} value={rescheduleMinute} onChange={(e) => setRescheduleMinute(+e.target.value)}
+                    className="w-16 bg-bg border border-black/10 rounded-xl px-3 py-2 font-body text-sm text-center focus:outline-none focus:border-primary" />
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-2 mt-4">
+              <button onClick={() => setRescheduleLesson(null)} className="flex-1 bg-bg text-dark/60 font-heading uppercase text-xs py-3 rounded-xl">Отмена</button>
+              <button
+                disabled={!rescheduleDate}
+                onClick={async () => {
+                  const dt = new Date(rescheduleDate);
+                  dt.setHours(rescheduleHour, rescheduleMinute, 0, 0);
+                  const updated = await curatorApi.updateLesson(rescheduleLesson!.id, { datetime: dt.toISOString() });
+                  setLessons((ls) => ls.map((l) => l.id === rescheduleLesson!.id ? { ...l, datetime: updated.datetime } : l));
+                  setRescheduleLesson(null);
+                }}
+                className="flex-1 bg-primary text-white font-heading uppercase text-xs py-3 rounded-xl disabled:opacity-60"
+              >Перенести</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

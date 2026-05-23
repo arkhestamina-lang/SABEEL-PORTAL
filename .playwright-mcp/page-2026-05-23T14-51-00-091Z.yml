@@ -1,0 +1,225 @@
+- generic [ref=e24]:
+  - generic [ref=e25]:
+    - generic [ref=e26]:
+      - heading "Студенты" [level=1] [ref=e27]
+      - button "+ Добавить" [ref=e28] [cursor=pointer]
+    - textbox "Поиск по имени..." [ref=e29]
+    - generic [ref=e30]:
+      - button "Все группы" [ref=e31] [cursor=pointer]
+      - button "Братья 1 курс" [ref=e32] [cursor=pointer]
+      - button "Ж-1" [ref=e33] [cursor=pointer]
+      - button "М-1" [ref=e34] [cursor=pointer]
+      - button "Сёстры 1 курс" [ref=e35] [cursor=pointer]
+      - button "Братья 2 курс" [ref=e36] [cursor=pointer]
+      - button "Ж-2" [ref=e37] [cursor=pointer]
+      - button "М-2" [ref=e38] [cursor=pointer]
+      - button "Сёстры 2 курс" [ref=e39] [cursor=pointer]
+      - button "Братья 3 курс" [ref=e40] [cursor=pointer]
+      - button "Ж-3" [ref=e41] [cursor=pointer]
+      - button "М-3" [ref=e42] [cursor=pointer]
+      - button "Сёстры 3 курс" [ref=e43] [cursor=pointer]
+      - button "Братья 4 курс" [ref=e44] [cursor=pointer]
+      - button "Сёстры 4 курс" [ref=e45] [cursor=pointer]
+    - generic [ref=e46]:
+      - button "Все" [ref=e47] [cursor=pointer]
+      - button "Под угрозой" [ref=e48] [cursor=pointer]
+      - button "Близко к лимиту" [ref=e49] [cursor=pointer]
+      - button "Лучшие" [ref=e50] [cursor=pointer]
+    - generic [ref=e51]:
+      - button "1 Каримов Юсуф 2 курс · 0 пропуска · 0 несдачи 91" [ref=e52] [cursor=pointer]:
+        - generic [ref=e53]:
+          - generic [ref=e54]: "1"
+          - generic [ref=e55]:
+            - paragraph [ref=e56]: Каримов Юсуф
+            - paragraph [ref=e57]: 2 курс · 0 пропуска · 0 несдачи
+        - generic [ref=e58]: "91"
+      - button "2 Алиева Марьям 3 курс · 0 пропуска · 0 несдачи 91" [ref=e59] [cursor=pointer]:
+        - generic [ref=e60]:
+          - generic [ref=e61]: "2"
+          - generic [ref=e62]:
+            - paragraph [ref=e63]: Алиева Марьям
+            - paragraph [ref=e64]: 3 курс · 0 пропуска · 0 несдачи
+        - generic [ref=e65]: "91"
+      - button "3 Ахобекова Марина 2 курс · 0 пропуска · 0 несдачи 71" [ref=e66] [cursor=pointer]:
+        - generic [ref=e67]:
+          - generic [ref=e68]: "3"
+          - generic [ref=e69]:
+            - paragraph [ref=e70]: Ахобекова Марина
+            - paragraph [ref=e71]: 2 курс · 0 пропуска · 0 несдачи
+        - generic [ref=e72]: "71"
+      - button "4 Алиев Ахмад 1 курс · 0 пропуска · 0 несдачи 70" [ref=e73] [cursor=pointer]:
+        - generic [ref=e74]:
+          - generic [ref=e75]: "4"
+          - generic [ref=e76]:
+            - paragraph [ref=e77]: Алиев Ахмад
+            - paragraph [ref=e78]: 1 курс · 0 пропуска · 0 несдачи
+        - generic [ref=e79]: "70"
+      - button "5 Каримов Юсуф 1 курс · 0 пропуска · 0 несдачи 70" [ref=e80] [cursor=pointer]:
+        - generic [ref=e81]:
+          - generic [ref=e82]: "5"
+          - generic [ref=e83]:
+            - paragraph [ref=e84]: Каримов Юсуф
+            - paragraph [ref=e85]: 1 курс · 0 пропуска · 0 несдачи
+        - generic [ref=e86]: "70"
+      - button "6 Алиева Марьям 1 курс · 0 пропуска · 0 несдачи 70" [ref=e87] [cursor=pointer]:
+        - generic [ref=e88]:
+          - generic [ref=e89]: "6"
+          - generic [ref=e90]:
+            - paragraph [ref=e91]: Алиева Марьям
+            - paragraph [ref=e92]: 1 курс · 0 пропуска · 0 несдачи
+        - generic [ref=e93]: "70"
+      - button "7 Каримова Зайнаб 1 курс · 0 пропуска · 0 несдачи 70" [ref=e94] [cursor=pointer]:
+        - generic [ref=e95]:
+          - generic [ref=e96]: "7"
+          - generic [ref=e97]:
+            - paragraph [ref=e98]: Каримова Зайнаб
+            - paragraph [ref=e99]: 1 курс · 0 пропуска · 0 несдачи
+        - generic [ref=e100]: "70"
+      - button "8 Садыков Ибрахим 2 курс · 0 пропуска · 0 несдачи 70" [ref=e101] [cursor=pointer]:
+        - generic [ref=e102]:
+          - generic [ref=e103]: "8"
+          - generic [ref=e104]:
+            - paragraph [ref=e105]: Садыков Ибрахим
+            - paragraph [ref=e106]: 2 курс · 0 пропуска · 0 несдачи
+        - generic [ref=e107]: "70"
+      - button "9 Хасанов Умар 2 курс · 0 пропуска · 0 несдачи 70" [ref=e108] [cursor=pointer]:
+        - generic [ref=e109]:
+          - generic [ref=e110]: "9"
+          - generic [ref=e111]:
+            - paragraph [ref=e112]: Хасанов Умар
+            - paragraph [ref=e113]: 2 курс · 0 пропуска · 0 несдачи
+        - generic [ref=e114]: "70"
+      - button "10 Джабраилов Халид 3 курс · 0 пропуска · 0 несдачи 70" [ref=e115] [cursor=pointer]:
+        - generic [ref=e116]:
+          - generic [ref=e117]: "10"
+          - generic [ref=e118]:
+            - paragraph [ref=e119]: Джабраилов Халид
+            - paragraph [ref=e120]: 3 курс · 0 пропуска · 0 несдачи
+        - generic [ref=e121]: "70"
+      - button "11 Рахимов Мухаммад 3 курс · 0 пропуска · 0 несдачи 70" [ref=e122] [cursor=pointer]:
+        - generic [ref=e123]:
+          - generic [ref=e124]: "11"
+          - generic [ref=e125]:
+            - paragraph [ref=e126]: Рахимов Мухаммад
+            - paragraph [ref=e127]: 3 курс · 0 пропуска · 0 несдачи
+        - generic [ref=e128]: "70"
+      - button "12 Джабраилова Хадиджа 3 курс · 0 пропуска · 0 несдачи 70" [ref=e129] [cursor=pointer]:
+        - generic [ref=e130]:
+          - generic [ref=e131]: "12"
+          - generic [ref=e132]:
+            - paragraph [ref=e133]: Джабраилова Хадиджа
+            - paragraph [ref=e134]: 3 курс · 0 пропуска · 0 несдачи
+        - generic [ref=e135]: "70"
+      - button "13 Рахимова Айша 3 курс · 0 пропуска · 0 несдачи 70" [ref=e136] [cursor=pointer]:
+        - generic [ref=e137]:
+          - generic [ref=e138]: "13"
+          - generic [ref=e139]:
+            - paragraph [ref=e140]: Рахимова Айша
+            - paragraph [ref=e141]: 3 курс · 0 пропуска · 0 несдачи
+        - generic [ref=e142]: "70"
+      - button "14 Бакиров Исмаил 4 курс · 0 пропуска · 0 несдачи 70" [ref=e143] [cursor=pointer]:
+        - generic [ref=e144]:
+          - generic [ref=e145]: "14"
+          - generic [ref=e146]:
+            - paragraph [ref=e147]: Бакиров Исмаил
+            - paragraph [ref=e148]: 4 курс · 0 пропуска · 0 несдачи
+        - generic [ref=e149]: "70"
+      - button "15 Магомедов Абдулла 4 курс · 0 пропуска · 0 несдачи 70" [ref=e150] [cursor=pointer]:
+        - generic [ref=e151]:
+          - generic [ref=e152]: "15"
+          - generic [ref=e153]:
+            - paragraph [ref=e154]: Магомедов Абдулла
+            - paragraph [ref=e155]: 4 курс · 0 пропуска · 0 несдачи
+        - generic [ref=e156]: "70"
+      - button "16 Бакирова Рукайя 4 курс · 0 пропуска · 0 несдачи 70" [ref=e157] [cursor=pointer]:
+        - generic [ref=e158]:
+          - generic [ref=e159]: "16"
+          - generic [ref=e160]:
+            - paragraph [ref=e161]: Бакирова Рукайя
+            - paragraph [ref=e162]: 4 курс · 0 пропуска · 0 несдачи
+        - generic [ref=e163]: "70"
+      - button "17 Магомедова Сафия 4 курс · 0 пропуска · 0 несдачи 70" [ref=e164] [cursor=pointer]:
+        - generic [ref=e165]:
+          - generic [ref=e166]: "17"
+          - generic [ref=e167]:
+            - paragraph [ref=e168]: Магомедова Сафия
+            - paragraph [ref=e169]: 4 курс · 0 пропуска · 0 несдачи
+        - generic [ref=e170]: "70"
+      - button "18 Алиев Ахмад 1 курс · 0 пропуска · 10 несдачи 42" [ref=e171] [cursor=pointer]:
+        - generic [ref=e172]:
+          - generic [ref=e173]: "18"
+          - generic [ref=e174]:
+            - paragraph [ref=e175]: Алиев Ахмад
+            - paragraph [ref=e176]: 1 курс · 0 пропуска · 10 несдачи
+        - generic [ref=e177]: "42"
+      - button "19 Бугова Мадин 1 курс · 0 пропуска · 30 несдачи 40" [ref=e178] [cursor=pointer]:
+        - generic [ref=e179]:
+          - generic [ref=e180]: "19"
+          - generic [ref=e181]:
+            - paragraph [ref=e182]: Бугова Мадин
+            - paragraph [ref=e183]: 1 курс · 0 пропуска · 30 несдачи
+        - generic [ref=e184]: "40"
+      - button "20 Умарова Зайнаб 1 курс · 0 пропуска · 30 несдачи 40" [ref=e185] [cursor=pointer]:
+        - generic [ref=e186]:
+          - generic [ref=e187]: "20"
+          - generic [ref=e188]:
+            - paragraph [ref=e189]: Умарова Зайнаб
+            - paragraph [ref=e190]: 1 курс · 0 пропуска · 30 несдачи
+        - generic [ref=e191]: "40"
+      - button "21 Садыкова Асма 2 курс · 0 пропуска · 5 несдачи 40" [ref=e192] [cursor=pointer]:
+        - generic [ref=e193]:
+          - generic [ref=e194]: "21"
+          - generic [ref=e195]:
+            - paragraph [ref=e196]: Садыкова Асма
+            - paragraph [ref=e197]: 2 курс · 0 пропуска · 5 несдачи
+        - generic [ref=e198]: "40"
+      - button "22 Хасанова Фатима 2 курс · 0 пропуска · 5 несдачи 40" [ref=e199] [cursor=pointer]:
+        - generic [ref=e200]:
+          - generic [ref=e201]: "22"
+          - generic [ref=e202]:
+            - paragraph [ref=e203]: Хасанова Фатима
+            - paragraph [ref=e204]: 2 курс · 0 пропуска · 5 несдачи
+        - generic [ref=e205]: "40"
+      - button "23 Исмаилова Хадиджа 1 курс · 1 пропуска · 29 несдачи 33" [ref=e206] [cursor=pointer]:
+        - generic [ref=e207]:
+          - generic [ref=e208]: "23"
+          - generic [ref=e209]:
+            - paragraph [ref=e210]: Исмаилова Хадиджа
+            - paragraph [ref=e211]: 1 курс · 1 пропуска · 29 несдачи
+        - generic [ref=e212]: "33"
+      - button "24 Магомедова Фатима 1 курс · 1 пропуска · 30 несдачи 32" [ref=e213] [cursor=pointer]:
+        - generic [ref=e214]:
+          - generic [ref=e215]: "24"
+          - generic [ref=e216]:
+            - paragraph [ref=e217]: Магомедова Фатима
+            - paragraph [ref=e218]: 1 курс · 1 пропуска · 30 несдачи
+        - generic [ref=e219]: "32"
+      - button "25 Дударова Аиша 1 курс · 2 пропуска · 11 несдачи 31" [ref=e220] [cursor=pointer]:
+        - generic [ref=e221]:
+          - generic [ref=e222]: "25"
+          - generic [ref=e223]:
+            - paragraph [ref=e224]: Дударова Аиша
+            - paragraph [ref=e225]: 1 курс · 2 пропуска · 11 несдачи
+        - generic [ref=e226]: "31"
+  - navigation [ref=e227]:
+    - generic [ref=e228]:
+      - link "Студенты" [ref=e229] [cursor=pointer]:
+        - /url: /students
+        - img [ref=e231]
+        - generic [ref=e236]: Студенты
+      - link "Заявки" [ref=e237] [cursor=pointer]:
+        - /url: /absences
+        - img [ref=e239]
+        - generic [ref=e242]: Заявки
+      - link "Расписание" [ref=e243] [cursor=pointer]:
+        - /url: /attendance
+        - img [ref=e245]
+        - generic [ref=e247]: Расписание
+      - link "Экзамены" [ref=e248] [cursor=pointer]:
+        - /url: /exams
+        - img [ref=e250]
+        - generic [ref=e252]: Экзамены
+      - link "Профиль" [ref=e253] [cursor=pointer]:
+        - /url: /curator-profile
+        - img [ref=e255]
+        - generic [ref=e258]: Профиль

@@ -6,6 +6,7 @@ import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import StudentLayout from './pages/student/StudentLayout';
 import CuratorLayout from './pages/curator/CuratorLayout';
+import Toast from './components/common/Toast';
 
 export default function App() {
   const { token, user, setAuth, logout } = useAuthStore();
@@ -22,6 +23,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      <Toast />
       <Routes>
         <Route path="/login" element={!token ? <LoginPage /> : <Navigate to="/" />} />
         <Route path="/register" element={!token ? <RegisterPage /> : <Navigate to="/" />} />

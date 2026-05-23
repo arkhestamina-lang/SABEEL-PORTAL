@@ -13,10 +13,11 @@ model User {
   lastName     String
   email        String   @unique
   passwordHash String
-  role         Role     @default(STUDENT)
-  course       Int?
-  groupId      Int?
-  createdAt    DateTime @default(now())
+  role             Role     @default(STUDENT)
+  course           Int?
+  groupId          Int?
+  telegramUsername String?
+  createdAt        DateTime @default(now())
 
   group           Group?           @relation("StudentGroup", fields: [groupId], references: [id])
   starostaOf      Group?           @relation("GroupStarosta")
@@ -28,7 +29,16 @@ model User {
   habitEntries        HabitEntry[]
   examScores          ExamScore[]
   attendanceMarks     AttendanceMark[]
-  taughtLessons       Lesson[]             @relation("TeacherLessons")
+  debtRequests        HomeworkDebtRequest[]
+}
+
+model Teacher {
+  id        Int    @id @default(autoincrement())
+  firstName String
+  lastName  String
+
+  templates ScheduleTemplate[]
+  lessons   Lesson[]
 }
 
 model Group {
@@ -53,6 +63,17 @@ model Semester {
 
   group     Group              @relation(fields: [groupId], references: [id])
   templates ScheduleTemplate[]
+  holidays  HolidayPeriod[]
+}
+
+model HolidayPeriod {
+  id         Int      @id @default(autoincrement())
+  semesterId Int
+  name       String
+  startDate  DateTime
+  endDate    DateTime
+
+  semester Semester @relation(fields: [semesterId], references: [id])
 }
 
 model ScheduleTemplate {
@@ -65,7 +86,8 @@ model ScheduleTemplate {
   teacherId  Int?
   meetingUrl String?
 
-  semester Semester @relation(fields: [semesterId], references: [id])
+  semester Semester  @relation(fields: [semesterId], references: [id])
+  teacher  Teacher?  @relation(fields: [teacherId], references: [id])
   lessons  Lesson[]
 }
 
@@ -82,7 +104,7 @@ model Lesson {
   meetingUrl  String?
 
   group    Group             @relation(fields: [groupId], references: [id])
-  teacher  User?             @relation("TeacherLessons", fields: [teacherId], references: [id])
+  teacher  Teacher?          @relation(fields: [teacherId], references: [id])
   template ScheduleTemplate? @relation(fields: [templateId], references: [id])
 
   absences            AbsenceRequest[]
@@ -90,6 +112,7 @@ model Lesson {
   homework            HomeworkMiss[]
   hwSubmissions       HomeworkSubmission[]
   hwPhotos            HomeworkPhoto[]
+  debtRequests        HomeworkDebtRequest[]
 }
 
 model AbsenceRequest {
@@ -101,8 +124,9 @@ model AbsenceRequest {
   submittedAt DateTime      @default(now())
   resolvedAt  DateTime?
 
-  student User   @relation(fields: [studentId], references: [id])
-  lesson  Lesson @relation(fields: [lessonId], references: [id])
+  student  User              @relation(fields: [studentId], references: [id])
+  lesson   Lesson            @relation(fields: [lessonId], references: [id])
+  evidence AbsenceEvidence[]
 
   @@unique([studentId, lessonId])
 }
@@ -137,6 +161,7 @@ model HabitEntry {
   date      DateTime @db.Date
   reading   Boolean  @default(false)
   listening Boolean  @default(false)
+  revision  Boolean  @default(false)
 
   student User @relation(fields: [studentId], references: [id])
 
@@ -144,11 +169,14 @@ model HabitEntry {
 }
 
 model Exam {
-  id      Int      @id @default(autoincrement())
-  title   String
-  date    DateTime
-  groupId Int
-  formUrl String?
+  id              Int      @id @default(autoincrement())
+  title           String
+  date            DateTime
+  startHour       Int?
+  startMinute     Int?
+  durationMinutes Int?
+  groupId         Int
+  formUrl         String?
 
   group  Group       @relation(fields: [groupId], references: [id])
   scores ExamScore[]
@@ -214,4 +242,44 @@ enum AbsenceStatus {
   PENDING
   EXCUSED
   COUNTED
+}
+
+enum DebtStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model HomeworkDebtRequest {
+  id          Int        @id @default(autoincrement())
+  studentId   Int
+  lessonId    Int
+  reason      String
+  status      DebtStatus @default(PENDING)
+  submittedAt DateTime   @default(now())
+  resolvedAt  DateTime?
+
+  student  User          @relation(fields: [studentId], references: [id])
+  lesson   Lesson        @relation(fields: [lessonId], references: [id])
+  evidence DebtEvidence[]
+
+  @@unique([studentId, lessonId])
+}
+
+model AbsenceEvidence {
+  id               Int            @id @default(autoincrement())
+  absenceRequestId Int
+  fileName         String
+  createdAt        DateTime       @default(now())
+
+  absenceRequest AbsenceRequest @relation(fields: [absenceRequestId], references: [id])
+}
+
+model DebtEvidence {
+  id            Int                 @id @default(autoincrement())
+  debtRequestId Int
+  fileName      String
+  createdAt     DateTime            @default(now())
+
+  debtRequest HomeworkDebtRequest @relation(fields: [debtRequestId], references: [id])
 }

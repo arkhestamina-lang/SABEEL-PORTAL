@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { authApi } from '../../api';
 import { useAuthStore } from '../../store/authStore';
 import { Eye, EyeOff, ArrowRight } from 'lucide-react';
@@ -39,15 +39,16 @@ export default function LoginPage() {
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 fade-up">
-        {/* Email */}
+        {/* Логин */}
         <div className="flex flex-col gap-1.5">
-          <label className="font-body text-[11px] uppercase tracking-widest text-muted">Email</label>
+          <label className="font-body text-[11px] uppercase tracking-widest text-muted">Логин</label>
           <input
-            type="email"
+            type="text"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
+            placeholder="ahmed.aliev123"
             required
+            autoCapitalize="none"
             className="w-full bg-card rounded-2xl px-4 py-3.5 font-body text-sm text-dark placeholder:text-muted/50 border border-border focus:outline-none focus:border-primary"
           />
         </div>
@@ -89,10 +90,6 @@ export default function LoginPage() {
         </button>
       </form>
 
-      <p className="mt-8 text-center font-body text-sm text-muted">
-        Нет аккаунта?{' '}
-        <Link to="/register" className="text-primary font-semibold">Зарегистрироваться</Link>
-      </p>
     </div>
   );
 }

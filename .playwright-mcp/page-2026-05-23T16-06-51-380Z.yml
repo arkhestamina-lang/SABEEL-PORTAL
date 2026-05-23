@@ -1,0 +1,54 @@
+- generic [ref=e5]:
+  - generic [ref=e6]:
+    - heading "Прогресс" [level=1] [ref=e7]
+    - generic [ref=e8]:
+      - generic [ref=e9]:
+        - img [ref=e10]
+        - generic [ref=e14]: "91"
+      - generic [ref=e15]:
+        - paragraph [ref=e16]: Итоговый балл
+        - paragraph [ref=e17]: "Место в группе: 1 из 1"
+    - generic [ref=e18]:
+      - paragraph [ref=e19]: Разбивка баллов
+      - generic [ref=e21]:
+        - generic [ref=e22]: Посещаемость
+        - generic [ref=e23]:
+          - text: "40"
+          - generic [ref=e24]: /40
+      - generic [ref=e28]:
+        - generic [ref=e29]: Домашние задания
+        - generic [ref=e30]:
+          - text: "30"
+          - generic [ref=e31]: /30
+      - generic [ref=e35]:
+        - generic [ref=e36]: Коран
+        - generic [ref=e37]:
+          - text: "20"
+          - generic [ref=e38]: /20
+      - generic [ref=e42]:
+        - generic [ref=e43]: Привычки
+        - generic [ref=e44]:
+          - text: "1"
+          - generic [ref=e45]: /10
+    - generic [ref=e48] [cursor=pointer]:
+      - paragraph [ref=e49]: «Кто пришёл на собрание знания без пера и бумаги — подобен тому, кто пришёл на мельницу без зерна.»
+      - paragraph [ref=e50]: Имам аш-Шафии
+      - paragraph [ref=e51]: Нажми для следующей цитаты
+  - navigation [ref=e52]:
+    - generic [ref=e53]:
+      - link "Главная" [ref=e54] [cursor=pointer]:
+        - /url: /dashboard
+        - img [ref=e56]
+        - generic [ref=e59]: Главная
+      - link "Расписание" [ref=e60] [cursor=pointer]:
+        - /url: /schedule
+        - img [ref=e62]
+        - generic [ref=e64]: Расписание
+      - link "Прогресс" [ref=e65] [cursor=pointer]:
+        - /url: /progress
+        - img [ref=e67]
+        - generic [ref=e68]: Прогресс
+      - link "Профиль" [ref=e69] [cursor=pointer]:
+        - /url: /profile
+        - img [ref=e71]
+        - generic [ref=e74]: Профиль

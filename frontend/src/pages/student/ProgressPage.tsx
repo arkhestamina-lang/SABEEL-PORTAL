@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { studentApi } from '../../api';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
+import PageError from '../../components/common/PageError';
 
 const QUOTES = [
   { text: 'Кто пришёл на собрание знания без пера и бумаги — подобен тому, кто пришёл на мельницу без зерна.', source: 'Имам аш-Шафии' },
@@ -20,13 +21,22 @@ const QUOTES = [
 
 export default function ProgressPage() {
   const [data, setData] = useState<any>(null);
+  const [loadError, setLoadError] = useState(false);
   const [quoteIdx, setQuoteIdx] = useState(0);
 
-  useEffect(() => { studentApi.progress().then(setData); }, []);
+  const [now, setNow] = useState(new Date());
+  const [examsOpen, setExamsOpen] = useState(false);
+  function load() { setLoadError(false); studentApi.progress().then(setData).catch(() => setLoadError(true)); }
+  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 30000);
+    return () => clearInterval(t);
+  }, []);
 
+  if (loadError) return <PageError onRetry={load} />;
   if (!data) return <div className="flex items-center justify-center min-h-dvh"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>;
 
-  const { rating, rank, history, exams } = data;
+  const { rating, rank, exams, semesterHistory = [] } = data;
 
   return (
     <div className="px-4 pt-8 pb-4 flex flex-col gap-5">
@@ -62,43 +72,90 @@ export default function ProgressPage() {
         <ScoreBar label="Привычки" score={rating.habitsScore} max={10} />
       </div>
 
-      {/* График по месяцам */}
-      <div className="bg-card rounded-2xl p-4">
-        <p className="font-heading uppercase tracking-wide text-sm text-dark/60 mb-3">Динамика</p>
-        <div className="flex items-end gap-2 h-20">
-          {history.map((h: any, i: number) => (
-            <div key={i} className="flex-1 flex flex-col items-center gap-1">
-              <div
-                className="w-full bg-primary rounded-t-md transition-all"
-                style={{ height: `${(h.total / 100) * 72}px`, opacity: i === history.length - 1 ? 1 : 0.5 }}
-              />
-              <span className="text-[9px] font-body text-dark/40">
-                {format(new Date(h.year, h.month - 1), 'MMM', { locale: ru })}
-              </span>
+      {/* Рейтинг по семестрам */}
+      {semesterHistory.length > 0 && (
+        <div className="bg-card rounded-2xl p-4 flex flex-col gap-3">
+          <p className="font-heading uppercase tracking-wide text-sm text-dark/60">Рейтинг по семестрам</p>
+          {semesterHistory.map((s: any) => (
+            <div key={s.id}>
+              <div className="flex justify-between mb-1">
+                <span className="font-body text-xs text-dark/60">{s.name}</span>
+                <span className="font-heading text-sm text-dark">
+                  {s.total}<span className="text-dark/30 text-xs">/{s.maxTotal}</span>
+                </span>
+              </div>
+              <div className="bg-bg rounded-full h-2 overflow-hidden">
+                <div className="h-full bg-primary rounded-full transition-all"
+                  style={{ width: `${Math.min((s.total / s.maxTotal) * 100, 100)}%` }} />
+              </div>
             </div>
           ))}
         </div>
-      </div>
+      )}
+
 
       {/* Экзамены */}
       {exams.length > 0 && (
-        <div className="bg-card rounded-2xl p-4">
-          <p className="font-heading uppercase tracking-wide text-sm text-dark/60 mb-3">Экзамены</p>
-          <div className="flex flex-col gap-2">
-            {exams.map((e: any) => (
-              <div key={e.id} className="flex items-center justify-between py-2 border-b border-black/5 last:border-0">
-                <div>
-                  <p className="font-body text-sm text-dark">{e.title}</p>
-                  <p className="font-body text-xs text-dark/40">{format(new Date(e.date), 'd MMMM yyyy', { locale: ru })}</p>
-                </div>
-                {e.scores[0] ? (
-                  <p className="font-heading text-lg text-primary">{e.scores[0].score}<span className="text-xs text-dark/40">/{e.scores[0].maxScore}</span></p>
-                ) : (
-                  <p className="font-body text-xs text-dark/30">Нет оценки</p>
-                )}
-              </div>
-            ))}
-          </div>
+        <div className="bg-card rounded-2xl overflow-hidden">
+          <button onClick={() => setExamsOpen((v) => !v)} className="w-full flex items-center justify-between px-4 py-3.5">
+            <span className="font-heading uppercase tracking-wide text-sm text-dark/60">Экзамены</span>
+            <span className="font-body text-xs text-dark/40">{exams.length} · {examsOpen ? '▲' : '▼'}</span>
+          </button>
+          {examsOpen && (
+            <div className="border-t border-black/5 px-4 pb-3 pt-1 flex flex-col gap-2">
+              {exams.map((e: any) => {
+                const examDate = new Date(e.date);
+                let examOpen = false;
+                let examPassed = false;
+                if (e.startHour != null && e.durationMinutes != null) {
+                  const start = new Date(examDate);
+                  start.setHours(e.startHour, e.startMinute ?? 0, 0, 0);
+                  const end = new Date(start.getTime() + e.durationMinutes * 60000);
+                  examOpen = now >= start && now <= end;
+                  examPassed = now > end;
+                } else {
+                  examPassed = now > examDate;
+                }
+                return (
+                  <div key={e.id} className="py-2 border-b border-black/5 last:border-0">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-body text-sm text-dark">{e.title}</p>
+                        <p className="font-body text-xs text-dark/40">
+                          {format(examDate, 'd MMMM yyyy', { locale: ru })}
+                          {e.startHour != null && ` · ${String(e.startHour).padStart(2,'0')}:${String(e.startMinute ?? 0).padStart(2,'0')}`}
+                          {e.durationMinutes != null && ` · ${e.durationMinutes} мин`}
+                        </p>
+                      </div>
+                      {e.scores[0] ? (
+                        <p className="font-heading text-lg text-primary">{e.scores[0].score}<span className="text-xs text-dark/40">/{e.scores[0].maxScore}</span></p>
+                      ) : examPassed ? (
+                        <p className="font-body text-xs text-dark/30">Нет оценки</p>
+                      ) : examOpen ? (
+                        <span className="font-heading text-[10px] uppercase text-green-600 bg-green-100 px-2 py-0.5 rounded-full">Идёт</span>
+                      ) : (
+                        <span className="font-body text-xs text-dark/30">Скоро</span>
+                      )}
+                    </div>
+                    {e.formUrl && examOpen && (
+                      <a href={e.formUrl} target="_blank" rel="noreferrer"
+                        className="mt-2 flex items-center justify-center gap-2 bg-primary text-white font-heading uppercase text-xs py-2.5 rounded-xl">
+                        Перейти к экзамену →
+                      </a>
+                    )}
+                    {e.formUrl && !examOpen && !examPassed && e.startHour != null && (
+                      <p className="font-body text-[10px] text-dark/40 mt-1">
+                        Ссылка откроется в {String(e.startHour).padStart(2,'0')}:{String(e.startMinute ?? 0).padStart(2,'0')}
+                      </p>
+                    )}
+                    {e.formUrl && examPassed && (
+                      <p className="font-body text-[10px] text-dark/40 mt-1">Экзамен завершён</p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 

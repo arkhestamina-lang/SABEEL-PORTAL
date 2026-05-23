@@ -80,6 +80,48 @@ photosRouter.delete('/student/homework-photos/:id', requireAuth, requireRole('ST
   res.json({ ok: true });
 });
 
+// Студент прикрепляет доказательства к заявке о пропуске
+photosRouter.post(
+  '/student/absence-evidence',
+  requireAuth, requireRole('STUDENT'),
+  upload.array('photos', 5),
+  async (req: AuthRequest, res: Response) => {
+    const studentId = req.user!.id;
+    const absenceRequestId = parseInt(req.body.absenceRequestId);
+    const files = req.files as Express.Multer.File[];
+    if (!files?.length) { res.status(400).json({ error: 'Нет файлов' }); return; }
+
+    const request = await prisma.absenceRequest.findFirst({ where: { id: absenceRequestId, studentId } });
+    if (!request) { res.status(404).json({ error: 'Заявка не найдена' }); return; }
+
+    const created = await Promise.all(
+      files.map((f) => prisma.absenceEvidence.create({ data: { absenceRequestId, fileName: f.filename } }))
+    );
+    res.json(created.map((e) => ({ id: e.id, url: `/uploads/${e.fileName}` })));
+  }
+);
+
+// Студент прикрепляет доказательства к запросу долга по ДЗ
+photosRouter.post(
+  '/student/debt-evidence',
+  requireAuth, requireRole('STUDENT'),
+  upload.array('photos', 5),
+  async (req: AuthRequest, res: Response) => {
+    const studentId = req.user!.id;
+    const debtRequestId = parseInt(req.body.debtRequestId);
+    const files = req.files as Express.Multer.File[];
+    if (!files?.length) { res.status(400).json({ error: 'Нет файлов' }); return; }
+
+    const request = await prisma.homeworkDebtRequest.findFirst({ where: { id: debtRequestId, studentId } });
+    if (!request) { res.status(404).json({ error: 'Заявка не найдена' }); return; }
+
+    const created = await Promise.all(
+      files.map((f) => prisma.debtEvidence.create({ data: { debtRequestId, fileName: f.filename } }))
+    );
+    res.json(created.map((e) => ({ id: e.id, url: `/uploads/${e.fileName}` })));
+  }
+);
+
 // Куратор видит все фото по уроку
 photosRouter.get('/curator/homework-photos/:lessonId', requireAuth, requireRole('CURATOR'), async (req: AuthRequest, res: Response) => {
   const lessonId = parseInt(req.params.lessonId);

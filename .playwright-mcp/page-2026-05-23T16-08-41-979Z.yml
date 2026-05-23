@@ -1,0 +1,51 @@
+- generic [ref=e5]:
+  - generic [ref=e6]:
+    - generic [ref=e7]:
+      - paragraph [ref=e8]: Профиль
+      - heading "Личный кабинет" [level=1] [ref=e9]
+    - generic [ref=e11]:
+      - generic [ref=e13]: М
+      - generic [ref=e14]:
+        - paragraph [ref=e15]: Марьям Алиева
+        - paragraph [ref=e16]: student@sabil.com
+        - paragraph [ref=e17]: логин для входа
+        - generic [ref=e18]:
+          - generic [ref=e19]: 3 курс
+          - generic [ref=e20]: Ж-3
+          - generic [ref=e21]: Студент
+    - link "Связаться с куратором" [ref=e22] [cursor=pointer]:
+      - /url: https://t.me/curator_sabeel
+      - img [ref=e23]
+      - generic [ref=e25]: Связаться с куратором
+      - img [ref=e26]
+    - button "Сменить пароль" [ref=e28] [cursor=pointer]:
+      - img [ref=e29]
+      - generic [ref=e32]: Сменить пароль
+      - img [ref=e33]
+    - generic [ref=e35]:
+      - button "Выйти из аккаунта" [ref=e36] [cursor=pointer]:
+        - generic [ref=e37]:
+          - img [ref=e38]
+          - generic [ref=e41]: Выйти из аккаунта
+        - img [ref=e42]
+      - button "Удалить аккаунт" [ref=e44] [cursor=pointer]:
+        - img [ref=e45]
+        - generic [ref=e48]: Удалить аккаунт
+  - navigation [ref=e49]:
+    - generic [ref=e50]:
+      - link "Главная" [ref=e51] [cursor=pointer]:
+        - /url: /dashboard
+        - img [ref=e53]
+        - generic [ref=e56]: Главная
+      - link "Расписание" [ref=e57] [cursor=pointer]:
+        - /url: /schedule
+        - img [ref=e59]
+        - generic [ref=e61]: Расписание
+      - link "Прогресс" [ref=e62] [cursor=pointer]:
+        - /url: /progress
+        - img [ref=e64]
+        - generic [ref=e65]: Прогресс
+      - link "Профиль" [ref=e66] [cursor=pointer]:
+        - /url: /profile
+        - img [ref=e68]
+        - generic [ref=e71]: Профиль

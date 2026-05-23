@@ -26,6 +26,28 @@ body {
   flex-direction: column;
 }
 
+/* Desktop: приложение выглядит как намеренный мобильный контейнер */
+@media (min-width: 768px) {
+  body {
+    background-color: #D4D0C8;
+    background-image: radial-gradient(circle at 20% 30%, #DDD9D0 0%, transparent 60%),
+                      radial-gradient(circle at 80% 70%, #C8C4BC 0%, transparent 60%);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 32px 0 48px;
+  }
+
+  #root {
+    min-height: calc(100dvh - 80px);
+    border-radius: 28px;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.07),
+                0 12px 40px rgba(0,0,0,0.13),
+                0 2px 8px rgba(0,0,0,0.06);
+    overflow: hidden;
+  }
+}
+
 /* Smooth transitions globally */
 button, a, input, select, textarea {
   transition: all 0.18s ease;
