@@ -5,7 +5,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "start": "serve dist"
+    "start": "serve -s dist -l ${PORT:-3000}"
   },
   "dependencies": {
     "@telegram-apps/sdk": "^2.3.0",
