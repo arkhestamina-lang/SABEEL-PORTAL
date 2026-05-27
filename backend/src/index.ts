@@ -65,21 +65,10 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 
 startCronJobs();
 
-(async () => {
-  try {
-    // Run migrations
-    const { spawn } = await import('child_process');
-    await new Promise<void>((resolve, reject) => {
-      const proc = spawn('npx', ['prisma', 'migrate', 'deploy'], { cwd: __dirname + '/..', stdio: 'inherit' });
-      proc.on('exit', (code) => code === 0 ? resolve() : reject(new Error('Migration failed')));
-    });
-
-    // Seed test data
-    await seedIfEmpty();
-
-    app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
-  } catch (err) {
-    console.error('Startup error:', err);
-    process.exit(1);
-  }
-})();
+seedIfEmpty().then(() => {
+  app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
+}).catch((err) => {
+  console.error('Seed error:', err);
+  // Don't exit, migrations might not have run yet
+  app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
+});
