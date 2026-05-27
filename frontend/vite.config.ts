@@ -7,6 +7,7 @@ export default defineConfig({
     port: 5173,
     host: true,
     open: true,
+    allowedHosts: ['sabil-frontend-production.up.railway.app'],
     proxy: {
       '/api':     { target: 'http://localhost:3001', changeOrigin: true },
       '/uploads': { target: 'http://localhost:3001', changeOrigin: true },
