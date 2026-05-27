@@ -17,22 +17,30 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 async function seedIfEmpty() {
-  const userCount = await prisma.user.count();
-  if (userCount === 0) {
-    const passwordHash = await bcrypt.hash('student123', 10);
-    const curatorHash = await bcrypt.hash('curator123', 10);
+  try {
+    const userCount = await prisma.user.count();
+    if (userCount === 0) {
+      const passwordHash = await bcrypt.hash('student123', 10);
+      const curatorHash = await bcrypt.hash('curator123', 10);
 
-    // Куратор
-    await prisma.user.create({
-      data: { firstName: 'Айша', lastName: 'Муминова', email: 'curator@sabil.com', passwordHash: curatorHash, role: 'CURATOR' },
-    });
+      // Куратор
+      await prisma.user.create({
+        data: { firstName: 'Айша', lastName: 'Муминова', email: 'curator@sabil.com', passwordHash: curatorHash, role: 'CURATOR' },
+      });
 
-    // Студент
-    await prisma.user.create({
-      data: { firstName: 'Марьям', lastName: 'Алиева', email: 'student@sabil.com', passwordHash, role: 'STUDENT', course: 1 },
-    });
+      // Студент
+      await prisma.user.create({
+        data: { firstName: 'Марьям', lastName: 'Алиева', email: 'student@sabil.com', passwordHash, role: 'STUDENT', course: 1 },
+      });
 
-    console.log('✓ Test accounts created');
+      console.log('✓ Test accounts created');
+    }
+  } catch (err: any) {
+    if (err.code === 'P2021') {
+      console.log('⚠ Tables not created yet, skipping seed');
+      return;
+    }
+    throw err;
   }
 }
 
@@ -57,9 +65,21 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 
 startCronJobs();
 
-seedIfEmpty().then(() => {
-  app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
-}).catch((err) => {
-  console.error('Seed error:', err);
-  process.exit(1);
-});
+(async () => {
+  try {
+    // Run migrations
+    const { spawn } = await import('child_process');
+    await new Promise<void>((resolve, reject) => {
+      const proc = spawn('npx', ['prisma', 'migrate', 'deploy'], { cwd: __dirname + '/..', stdio: 'inherit' });
+      proc.on('exit', (code) => code === 0 ? resolve() : reject(new Error('Migration failed')));
+    });
+
+    // Seed test data
+    await seedIfEmpty();
+
+    app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
+  } catch (err) {
+    console.error('Startup error:', err);
+    process.exit(1);
+  }
+})();
