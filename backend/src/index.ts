@@ -8,7 +8,6 @@ import { curatorRouter } from './routes/curator';
 import { photosRouter } from './routes/photos';
 import { starostaRouter } from './routes/starosta';
 import { startCronJobs } from './services/cronService';
-import { initializeDatabase } from './utils/initDb';
 
 dotenv.config();
 
@@ -27,7 +26,6 @@ app.use('/api/starosta', starostaRouter);
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 
-// Глобальный обработчик ошибок — ловит Prisma и прочие необработанные исключения
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   if (err?.code === 'P2025') { res.status(404).json({ error: 'Запись не найдена' }); return; }
   if (err?.code === 'P2002') { res.status(409).json({ error: 'Такая запись уже существует' }); return; }
@@ -36,9 +34,4 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 
 startCronJobs();
 
-initializeDatabase().then(() => {
-  app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
-}).catch((err) => {
-  console.error('Database init error:', err);
-  process.exit(1);
-});
+app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
