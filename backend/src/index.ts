@@ -8,6 +8,7 @@ import { curatorRouter } from './routes/curator';
 import { photosRouter } from './routes/photos';
 import { starostaRouter } from './routes/starosta';
 import { startCronJobs } from './services/cronService';
+import { testRouter } from './routes/test';
 
 dotenv.config();
 
@@ -23,6 +24,7 @@ app.use('/api/student', studentRouter);
 app.use('/api/curator', curatorRouter);
 app.use('/api', photosRouter);
 app.use('/api/starosta', starostaRouter);
+app.use('/api/test', testRouter);
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 
