@@ -27,7 +27,9 @@ export default function RegisterPage() {
       setAuth(token, user);
       navigate('/');
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Ошибка регистрации');
+      const errorMsg = err.response?.data?.error || err.message || 'Ошибка регистрации';
+      console.error('Registration error:', err.response?.data || err);
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
