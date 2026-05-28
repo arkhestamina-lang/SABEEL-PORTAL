@@ -8,41 +8,11 @@ import { curatorRouter } from './routes/curator';
 import { photosRouter } from './routes/photos';
 import { starostaRouter } from './routes/starosta';
 import { startCronJobs } from './services/cronService';
-import prisma from './utils/prisma';
-import bcrypt from 'bcryptjs';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-
-async function seedIfEmpty() {
-  try {
-    const userCount = await prisma.user.count();
-    if (userCount === 0) {
-      const passwordHash = await bcrypt.hash('student123', 10);
-      const curatorHash = await bcrypt.hash('curator123', 10);
-
-      // Куратор
-      await prisma.user.create({
-        data: { firstName: 'Айша', lastName: 'Муминова', email: 'curator@sabil.com', passwordHash: curatorHash, role: 'CURATOR' },
-      });
-
-      // Студент
-      await prisma.user.create({
-        data: { firstName: 'Марьям', lastName: 'Алиева', email: 'student@sabil.com', passwordHash, role: 'STUDENT', course: 1 },
-      });
-
-      console.log('✓ Test accounts created');
-    }
-  } catch (err: any) {
-    if (err.code === 'P2021') {
-      console.log('⚠ Tables not created yet, skipping seed');
-      return;
-    }
-    throw err;
-  }
-}
 
 app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173', credentials: true }));
 app.use(express.json());
@@ -65,10 +35,4 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 
 startCronJobs();
 
-seedIfEmpty().then(() => {
-  app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
-}).catch((err) => {
-  console.error('Seed error:', err);
-  // Don't exit, migrations might not have run yet
-  app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
-});
+app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
