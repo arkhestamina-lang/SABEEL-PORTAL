@@ -88,6 +88,14 @@ export default function LoginPage() {
             <><span>Войти</span><ArrowRight size={16} /></>
           )}
         </button>
+
+        <button
+          type="button"
+          onClick={() => navigate('/register')}
+          className="mt-4 w-full bg-white border-2 border-primary text-primary rounded-2xl py-4 font-heading uppercase tracking-widest text-sm flex items-center justify-center gap-2 hover:bg-primary/5 active:scale-[0.98]"
+        >
+          Регистрация куратора
+        </button>
       </form>
 
     </div>
