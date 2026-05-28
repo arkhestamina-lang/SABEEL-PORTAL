@@ -8,6 +8,7 @@ import { curatorRouter } from './routes/curator';
 import { photosRouter } from './routes/photos';
 import { starostaRouter } from './routes/starosta';
 import { startCronJobs } from './services/cronService';
+import { initializeDatabase } from './utils/initDb';
 // import { testRouter } from './routes/test';
 
 dotenv.config();
@@ -35,6 +36,7 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 });
 
 startCronJobs();
+initializeDatabase().catch(console.error);
 
 app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
 // v1780004893
