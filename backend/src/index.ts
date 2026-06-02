@@ -65,11 +65,17 @@ async function main() {
       console.log(`[startup] Backend running on port ${PORT}`);
     });
   } catch (err: any) {
-    console.error('[startup] Fatal error:', err.message || err);
+    console.error('[startup] FATAL ERROR');
+    console.error('[startup] Message:', err.message || err);
+    console.error('[startup] Code:', err.code);
+    console.error('[startup] Full error:', JSON.stringify(err, null, 2));
     console.error('[startup] Stack:', err.stack);
     process.exit(1);
   }
 }
 
-main();
+main().catch((err) => {
+  console.error('[startup] Uncaught error in main:', err);
+  process.exit(1);
+});
 // v1780004893
