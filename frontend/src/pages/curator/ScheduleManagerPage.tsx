@@ -3,12 +3,14 @@ import { curatorApi } from '../../api';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import type { Semester } from '../../types';
+import { useToastStore } from '../../store/toastStore';
 
 const DAYS = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
 
 interface Group { id: number; name: string; course: number }
 
 export default function ScheduleManagerPage() {
+  const toast = useToastStore();
   const [groups, setGroups] = useState<Group[]>([]);
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   const [semesters, setSemesters] = useState<Semester[]>([]);
@@ -66,10 +68,15 @@ export default function ScheduleManagerPage() {
   }
 
   async function createGroup() {
-    const g = await curatorApi.createGroup(newGroup.name, newGroup.course);
-    setGroups((gs) => [...gs, g].sort((a, b) => a.course - b.course));
-    setNewGroup({ name: '', course: 1 });
-    setShowNewGroup(false);
+    try {
+      const g = await curatorApi.createGroup(newGroup.name, newGroup.course);
+      setGroups((gs) => [...gs, g].sort((a, b) => a.course - b.course));
+      setNewGroup({ name: '', course: 1 });
+      setShowNewGroup(false);
+      toast.show('Группа создана', 'success');
+    } catch (err: any) {
+      toast.show(err.response?.data?.error || 'Ошибка создания группы');
+    }
   }
 
   async function selectGroup(group: Group) {
