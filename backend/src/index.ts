@@ -9,9 +9,13 @@ import { photosRouter } from './routes/photos';
 import { starostaRouter } from './routes/starosta';
 import { startCronJobs } from './services/cronService';
 import { initializeDatabase } from './utils/initDb';
+import prisma from './utils/prisma';
 // import { testRouter } from './routes/test';
 
 dotenv.config();
+console.log('[startup] Initializing...');
+console.log('[startup] DATABASE_URL:', process.env.DATABASE_URL ? 'set' : 'NOT SET');
+console.log('[startup] NODE_ENV:', process.env.NODE_ENV || 'development');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -44,19 +48,28 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   res.status(500).json({ error: 'Внутренняя ошибка сервера' });
 });
 
-try {
-  startCronJobs();
-  console.log('[startup] Cron jobs started');
+async function main() {
+  try {
+    // Test DB connection
+    console.log('[startup] Testing database connection...');
+    const userCount = await prisma.user.count();
+    console.log(`[startup] Database connected! Users: ${userCount}`);
 
-  initializeDatabase().catch((err) => {
-    console.error('[startup] Database init error:', err);
-  });
+    startCronJobs();
+    console.log('[startup] Cron jobs started');
 
-  app.listen(PORT, () => {
-    console.log(`[startup] Backend running on port ${PORT}`);
-  });
-} catch (err: any) {
-  console.error('[startup] Fatal error:', err.message || err);
-  process.exit(1);
+    await initializeDatabase();
+    console.log('[startup] Database initialization completed');
+
+    app.listen(PORT, () => {
+      console.log(`[startup] Backend running on port ${PORT}`);
+    });
+  } catch (err: any) {
+    console.error('[startup] Fatal error:', err.message || err);
+    console.error('[startup] Stack:', err.stack);
+    process.exit(1);
+  }
 }
+
+main();
 // v1780004893
