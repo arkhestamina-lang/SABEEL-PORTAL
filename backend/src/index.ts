@@ -44,8 +44,19 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   res.status(500).json({ error: 'Внутренняя ошибка сервера' });
 });
 
-startCronJobs();
-initializeDatabase().catch(console.error);
+try {
+  startCronJobs();
+  console.log('[startup] Cron jobs started');
 
-app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
+  initializeDatabase().catch((err) => {
+    console.error('[startup] Database init error:', err);
+  });
+
+  app.listen(PORT, () => {
+    console.log(`[startup] Backend running on port ${PORT}`);
+  });
+} catch (err: any) {
+  console.error('[startup] Fatal error:', err.message || err);
+  process.exit(1);
+}
 // v1780004893
