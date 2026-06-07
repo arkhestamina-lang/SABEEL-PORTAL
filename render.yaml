@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: sabil-backend
+    runtime: node
+    buildCommand: npm install && npm run build --workspace=backend
+    startCommand: npm start --workspace=backend
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: sabil-db
+          property: connectionString
